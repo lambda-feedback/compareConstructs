@@ -32,5 +32,14 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     return types and that evaluation_function() is the main function used
     to output the evaluation response.
     """
+    import ast
 
-    return Result(is_correct=True)
+    # Demo: check for an 'if' statement
+    try:
+        tree = ast.parse(response)
+        for node in ast.walk(tree):
+            if isinstance(node, ast.If):
+                return {"is_correct": True}
+        return {"is_correct": False}
+    except SyntaxError:
+        return {"is_correct": False}

@@ -1,6 +1,6 @@
 import unittest
 
-from utils import *
+from .utils import *
 
 
 

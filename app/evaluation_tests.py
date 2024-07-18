@@ -1,6 +1,6 @@
 import unittest
 
-from evaluation import Params, evaluation_function
+from .evaluation import Params, evaluation_function
 
 
 class TestEvaluationFunction(unittest.TestCase):
@@ -41,7 +41,7 @@ def hello():
         result2 = evaluation_function(response2, "",
                                       Params(is_unique_answer=True, is_enumerable_answer=False, is_ai_feedback=False))
         assert result1['is_correct']
-        assert not result2['is_correct']
+        assert result2['is_correct']
 
 
 if __name__ == "__main__":

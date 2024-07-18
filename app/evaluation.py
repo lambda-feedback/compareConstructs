@@ -1,5 +1,5 @@
 from typing import Any, TypedDict
-from utils import *
+from .utils import *
 
 
 # TODO Implement three general types of feedbacks:

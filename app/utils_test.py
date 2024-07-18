@@ -1,9 +1,10 @@
 import unittest
 
-from evaluation import Params, evaluation_function
+from utils import *
 
 
-class TestEvaluationFunction(unittest.TestCase):
+
+class TestUtilsFunction(unittest.TestCase):
     """
     TestCase Class used to test the algorithm.
     ---
@@ -22,12 +23,11 @@ class TestEvaluationFunction(unittest.TestCase):
     as it should.
     """
 
-    def test_general_eval(self):
+    def test_general_check(self):
         response1 = """
 def hello():
-    for i in range(5):
-        if i == 3:
-            print(i)
+ print(1)
+  print()
 """
         response2 = """
 def hello():
@@ -35,13 +35,24 @@ def hello():
         if i == 3:
             print(i)
             return 2
+        """
+        response3 = """
+def hello():
+    print()
+      print()     
 """
-        result1 = evaluation_function(response1, "",
-                                      Params(is_unique_answer=True, is_enumerable_answer=False, is_ai_feedback=False))
-        result2 = evaluation_function(response2, "",
-                                      Params(is_unique_answer=True, is_enumerable_answer=False, is_ai_feedback=False))
-        assert result1['is_correct']
-        assert not result2['is_correct']
+
+        is_syntax_correct1, _ = check_syntax(response1)
+        assert not check_indents(response1)
+        assert not is_syntax_correct1
+
+        is_syntax_correct2, _ = check_syntax(response2)
+        assert check_indents(response2)
+        assert check_syntax(response2)
+
+        is_syntax_correct3, _ = check_syntax(response3)
+        assert not check_indents(response3)
+        assert not is_syntax_correct3
 
 
 if __name__ == "__main__":

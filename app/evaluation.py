@@ -1,12 +1,17 @@
 from typing import Any, TypedDict
+from utils import *
 
 
+# TODO Implement three general types of feedbacks:
 class Params(TypedDict):
-    pass
+    is_unique_answer: bool
+    is_enumerable_answer: bool
+    is_ai_feedback: bool
 
 
 class Result(TypedDict):
     is_correct: bool
+    feedback: str
 
 
 def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
@@ -32,14 +37,9 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     return types and that evaluation_function() is the main function used
     to output the evaluation response.
     """
-    import ast
 
-    # Demo: check for an 'if' statement
-    try:
-        tree = ast.parse(response)
-        for node in ast.walk(tree):
-            if isinstance(node, ast.If):
-                return {"is_correct": True}
-        return {"is_correct": False}
-    except SyntaxError:
-        return {"is_correct": False}
+    feedback = general_check(response)
+    if feedback != "General check passed!":
+        return Result(is_correct=False, feedback=feedback)
+    else:
+        return Result(is_correct=True, feedback=feedback)

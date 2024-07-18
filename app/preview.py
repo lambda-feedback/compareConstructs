@@ -1,9 +1,11 @@
 from typing import Any, TypedDict
 
+# TODO Implement three general types of feedbacks:
 
 class Params(TypedDict):
-    pass
-
+    is_unique_answer: bool
+    is_enumerable_answer: bool
+    is_ai_feedback: bool
 
 class Result(TypedDict):
     preview: Any
@@ -29,4 +31,11 @@ def preview_function(response: Any, params: Params) -> Result:
     The way you wish to structure you code (all in this function, or
     split into many) is entirely up to you.
     """
+
+
     return Result(preview=response)
+
+
+
+
+

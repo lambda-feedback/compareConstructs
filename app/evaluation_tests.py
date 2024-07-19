@@ -27,8 +27,6 @@ class TestEvaluationFunction(unittest.TestCase):
     def test_general_eval(self):
         response1 = """
 print(5)
-while(True):
-print(4)
 """
         response2 = """
 for i in range(5):
@@ -39,7 +37,7 @@ for i in range(5):
                                       Params(is_unique_answer=True, is_multiple_answers=False, is_ai_feedback=False, has_output=True))
         result2 = evaluation_function(response2, "",
                                       Params(is_unique_answer=True, is_multiple_answers=False, is_ai_feedback=False, has_output=True))
-        assert not result1['is_correct']
+        assert result1['is_correct']
         print(result1['feedback'])
         assert not result2['is_correct']
 

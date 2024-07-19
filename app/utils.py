@@ -27,6 +27,11 @@ def check_indents(code_string: str) -> bool:
             indent_difference = indent_level
             break
 
+    # zero indent only occur when they are no any syntax like (if, for)
+    if indent_difference == 0:
+        return all(indent_level == 0 for indent_level in indent_levels)
+
+    # correct indents
     if indent_difference != 2 and indent_difference != 4:
         return False
 
@@ -87,8 +92,6 @@ def check_answer_with_output(response, answer):
     except Exception as e:
         ans_feedback = f"Exception occurred: {str(e)}"
 
-    print(res_feedback)
-    print(ans_feedback)
     return res_feedback == ans_feedback
 
 
@@ -97,7 +100,9 @@ def check_each_letter(response, answer):
     The function is called iff the answer and the response are unique. i.e. aList = [1,2,3,4,5] is the unique answer and response
     Notice that styles (at least they can pass general check) are NOT sensitive
     """
-    return answer.replace(" ", "").replace("\t", "").replace("\n", "") == response.replace(" ", "").replace("\t", "").replace("\n", "")
+    return answer.replace(" ", "").replace("\t", "").replace("\n", "") == response.replace(" ", "").replace("\t",
+                                                                                                            "").replace(
+        "\n", "")
 
 
 if __name__ == '__main__':

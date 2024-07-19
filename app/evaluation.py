@@ -1,5 +1,8 @@
 from typing import Any, TypedDict
-from .utils import *
+try:
+    from .utils import *
+except ImportError:
+    from utils import *
 
 
 # TODO Implement three general types of feedbacks:

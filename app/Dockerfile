@@ -16,6 +16,9 @@ COPY evaluation_tests.py ./app/
 COPY preview.py ./app/
 COPY preview_tests.py ./app/
 
+COPY utils_test.py ./app/
+COPY utils_test.py ./app/
+
 # Copy Documentation
 COPY docs/dev.md ./app/docs/dev.md
 COPY docs/user.md ./app/docs/user.md

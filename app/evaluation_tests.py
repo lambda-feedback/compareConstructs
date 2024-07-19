@@ -24,7 +24,7 @@ class TestEvaluationFunction(unittest.TestCase):
 
     def test_general_eval(self):
         response = """
-result = 10 / 0 
+print("hello world)
 """
         result = evaluation_function(response, response, Params(is_unique_answer=True, is_ai_feedback=False, is_multiple_answers=False, has_output=True))
         assert not result['is_correct']

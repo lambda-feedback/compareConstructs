@@ -83,8 +83,8 @@ def general_check(code_string) -> str:
         return f"Indent error, the indent should only be multiple of 2 or 4"
     is_syntax_correct, msg = check_syntax(code_string)
     if not is_syntax_correct:
-        return f"Error occurs, please check the details below: \n{message_format(msg)}"
-    # TODO implement the message format
+        return f"Error occurs, please check the details below: <br>{message_format(msg)}"
+    
     return "General check passed!"
 
 

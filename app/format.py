@@ -1,21 +1,19 @@
-
-
-
 # _, msg = check_syntax(response)
 
 general_errors = ["NameError", "TypeError", "IndexError", "ValueError", "AttributeError",
                   "ModuleNotFoundError", "ZeroDivisionError", "FileNotFoundError", "OverflowError",
                   "UnboundLocalError"]
-short_errors = ["SyntaxError", "IndentationError"]
+syntax_errors = ["SyntaxError", "IndentationError"]
 no_message_errors = ["MemoryError"]
+
 
 def message_format(message):
     message_lines = message.splitlines()
     error_msg = message_lines[-1]
     error_type = error_msg.split(":")[0]
 
-    if error_type in short_errors:
-        return short_error_format(error_type, message_lines)
+    if error_type in syntax_errors:
+        return syntax_error_format(error_type, message_lines)
     elif error_type == "KeyError":
         return key_error_format(message_lines)
     elif error_type == "FileNotFoundError":
@@ -37,11 +35,13 @@ def file_not_found_error_format(message_lines):
 def no_message_error_format(error_type, message_lines):
     line_location = message_lines[-2].split(",")[1].lstrip()
     return f"{error_type}: at {line_location}"
-def short_error_format(error_type, message_lines):
+
+
+def syntax_error_format(error_type, message_lines):
     line_location = message_lines[0].split(",")[1].lstrip()
     code_location = message_lines[1:-1]
-    syntax_detail = '\n'.join(code_location)
-    return f"{error_type}: at {line_location},\n{syntax_detail}"
+    syntax_detail = '<br>'.join(code_location)
+    return f"{error_type}: at {line_location},<br>{syntax_detail}"
 
 
 def key_error_format(message_lines):

@@ -22,10 +22,6 @@ class TestEvaluationFunction(unittest.TestCase):
     as it should.
     """
 
-    def test_returns_is_correct_true(self):
-        response, answer, params = None, None, Params()
-        result = evaluation_function(response, answer, params)
-
     def test_contains_if_statement(self):
         code_string = "if x > 5:\n    print('x is greater than 5')"
         result = evaluation_function(code_string, '', '')

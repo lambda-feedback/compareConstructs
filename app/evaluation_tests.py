@@ -22,15 +22,12 @@ class TestEvaluationFunction(unittest.TestCase):
     as it should.
     """
 
-    def test_contains_if_statement(self):
-        code_string = "if x > 5:\n    print('x is greater than 5')"
-        result = evaluation_function(code_string, '', '')
-        self.assertEqual(result.get("is_correct"), True)
-
-    def test_contains_no_if_statement(self):
-        code_string = "print('Hello, world!')"
-        result = evaluation_function(code_string, '', '')
-        self.assertEqual(result.get("is_correct"), False)
+    def test_general_eval(self):
+        response = """
+print(hello)
+"""
+        result = evaluation_function(response, response, Params(is_unique_answer=True, is_ai_feedback=False, is_multiple_answers=False, has_output=True))
+        assert not result['is_correct']
 
 
 if __name__ == "__main__":

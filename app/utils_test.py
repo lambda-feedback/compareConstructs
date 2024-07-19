@@ -3,7 +3,6 @@ import unittest
 from .utils import *
 
 
-
 class TestUtilsFunction(unittest.TestCase):
     """
     TestCase Class used to test the algorithm.

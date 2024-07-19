@@ -5,8 +5,9 @@ from .utils import *
 # TODO Implement three general types of feedbacks:
 class Params(TypedDict):
     is_unique_answer: bool
-    is_enumerable_answer: bool
+    is_multiple_answers: bool
     is_ai_feedback: bool
+    has_output: bool
 
 
 class Result(TypedDict):
@@ -38,8 +39,10 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     to output the evaluation response.
     """
 
-    feedback = general_check(response)
-    if feedback != "General check passed!":
-        return Result(is_correct=False, feedback=feedback)
-    else:
-        return Result(is_correct=True, feedback=feedback)
+    general_feedback = general_check(response)
+    if general_feedback != "General check passed!":
+        return Result(is_correct=False, feedback=general_feedback)
+
+    if params['has_output'] and params['is_unique_answer']:
+        if not check_answer_with_output(response, answer):
+            return Result(is_correct=False, feedback=general_feedback)

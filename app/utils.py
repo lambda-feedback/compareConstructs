@@ -47,10 +47,8 @@ def check_syntax(code_string):
     with open("temp.py", 'w') as file:
         file.write(code_string)
     try:
-        # Execute the Python script
         result = subprocess.run(['python', "temp.py"], capture_output=True, text=True)
         os.remove("temp.py")
-        # Check if there were any errors
         if result.returncode != 0:
             return False, f"Error: {result.stderr.strip()}"
         else:
@@ -59,10 +57,58 @@ def check_syntax(code_string):
         return False, f"Exception occurred: {str(e)}"
 
 
+def check_answer_with_output(response, answer):
+    """
+    The function is called iff the answer is unique. i.e. aList = [1,2,3,4,5] is the unique answer
+    Notice that styles (at least they can pass general check) are NOT sensitive
+    """
+    with open("res_tmp.py", 'w') as file:
+        file.write(response)
+    with open("ans_tmp.py", 'w') as file:
+        file.write(answer)
+    res_feedback = ""
+    ans_feedback = ""
+    try:
+        res_result = subprocess.run(['python', "res_tmp.py"], capture_output=True, text=True)
+        os.remove("res_tmp.py")
+        if res_result.returncode != 0:
+            res_feedback = f"Error: {res_result.stderr.strip()}"
+        else:
+            res_feedback = res_result.stdout.strip()
+    except Exception as e:
+        res_feedback = f"Exception occurred: {str(e)}"
+    try:
+        ans_result = subprocess.run(['python', "ans_tmp.py"], capture_output=True, text=True)
+        os.remove("ans_tmp.py")
+        if ans_result.returncode != 0:
+            ans_feedback = f"Error: {ans_result.stderr.strip()}"
+        else:
+            ans_feedback = ans_result.stdout.strip()
+    except Exception as e:
+        ans_feedback = f"Exception occurred: {str(e)}"
+
+    print(res_feedback)
+    print(ans_feedback)
+    return res_feedback == ans_feedback
+
+
+def check_each_letter(response, answer):
+    """
+    The function is called iff the answer and the response are unique. i.e. aList = [1,2,3,4,5] is the unique answer and response
+    Notice that styles (at least they can pass general check) are NOT sensitive
+    """
+    return answer.replace(" ", "").replace("\t", "").replace("\n", "") == response.replace(" ", "").replace("\t", "").replace("\n", "")
+
 
 if __name__ == '__main__':
     response = """
-def hello():
-print(hello)
+for i in range(5):
+    print(i)
 """
-    print(general_check(response))
+    answer = """
+count = 0
+while count < 5:
+    print(count)
+    count += 1
+"""
+    print(check_answer_with_output(response, answer))

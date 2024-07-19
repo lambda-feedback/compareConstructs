@@ -1,7 +1,7 @@
 from typing import Any, TypedDict
 import os
 import subprocess
-
+from .format import message_format
 
 class Params(TypedDict):
     is_unique_answer: bool
@@ -83,18 +83,22 @@ def general_check(code_string) -> str:
         return f"Indent error, the indent should only be multiple of 2 or 4"
     is_syntax_correct, msg = check_syntax(code_string)
     if not is_syntax_correct:
-        return f"Syntax error, check the details below: "
+        return f"Error occurs, please check the details below: \n{message_format(msg)}"
     # TODO implement the message format
     return "General check passed!"
 
 
 def check_syntax(code_string):
     try:
-        result = subprocess.run(['python', '-c', code_string], capture_output=True, text=True)
+        result = subprocess.run(['python', '-c', code_string], capture_output=True)
         if result.returncode != 0:
-            return False, f"Error: {result.stderr.strip()}"
+            try:
+                stderr = result.stderr.decode('utf-8')
+            except UnicodeDecodeError:
+                stderr = result.stderr.decode('utf-8', errors='replace')
+            return False, f"Error: {stderr}"
         else:
-            return True, result.stdout.strip()
+            return True, result.stdout.decode('utf-8')
     except Exception as e:
         return False, f"Exception occurred: {str(e)}"
 

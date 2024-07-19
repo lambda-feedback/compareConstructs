@@ -89,11 +89,8 @@ def general_check(code_string) -> str:
 
 
 def check_syntax(code_string):
-    with open("temp.py", 'w') as file:
-        file.write(code_string)
     try:
-        result = subprocess.run(['python', "temp.py"], capture_output=True, text=True)
-        os.remove("temp.py")
+        result = subprocess.run(['python', '-c', code_string], capture_output=True, text=True)
         if result.returncode != 0:
             return False, f"Error: {result.stderr.strip()}"
         else:
@@ -107,15 +104,8 @@ def check_answer_with_output(response, answer):
     The function is called iff the answer is unique. i.e. aList = [1,2,3,4,5] is the unique answer
     Notice that styles (at least they can pass general check) are NOT sensitive
     """
-    with open("res_tmp.py", 'w') as file:
-        file.write(response)
-    with open("ans_tmp.py", 'w') as file:
-        file.write(answer)
-    res_feedback = ""
-    ans_feedback = ""
     try:
-        res_result = subprocess.run(['python', "res_tmp.py"], capture_output=True, text=True)
-        os.remove("res_tmp.py")
+        res_result = subprocess.run(['python', '-c', response], capture_output=True, text=True)
         if res_result.returncode != 0:
             res_feedback = f"Error: {res_result.stderr.strip()}"
         else:
@@ -123,8 +113,7 @@ def check_answer_with_output(response, answer):
     except Exception as e:
         res_feedback = f"Exception occurred: {str(e)}"
     try:
-        ans_result = subprocess.run(['python', "ans_tmp.py"], capture_output=True, text=True)
-        os.remove("ans_tmp.py")
+        ans_result = subprocess.run(['python', '-c', answer], capture_output=True, text=True)
         if ans_result.returncode != 0:
             ans_feedback = f"Error: {ans_result.stderr.strip()}"
         else:

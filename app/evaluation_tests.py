@@ -24,10 +24,11 @@ class TestEvaluationFunction(unittest.TestCase):
 
     def test_general_eval(self):
         response = """
-print(hello)
+for i in range(4):
+    print(i)
 """
         result = evaluation_function(response, response, Params(is_unique_answer=True, is_ai_feedback=False, is_multiple_answers=False, has_output=True))
-        assert not result['is_correct']
+        assert result['is_correct']
 
 
 if __name__ == "__main__":

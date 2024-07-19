@@ -37,9 +37,9 @@ def hello():
             return 2
 """
         result1 = evaluation_function(response1, "",
-                                      Params(is_unique_answer=True, is_enumerable_answer=False, is_ai_feedback=False))
+                                      Params(is_unique_answer=True, is_multiple_answers=False, is_ai_feedback=False, has_output=True))
         result2 = evaluation_function(response2, "",
-                                      Params(is_unique_answer=True, is_enumerable_answer=False, is_ai_feedback=False))
+                                      Params(is_unique_answer=True, is_multiple_answers=False, is_ai_feedback=False, has_output=True))
         assert result1['is_correct']
         assert result2['is_correct']
 

@@ -46,3 +46,4 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     if params['has_output'] and params['is_unique_answer']:
         if not check_answer_with_output(response, answer):
             return Result(is_correct=False, feedback=general_feedback)
+        return Result(is_correct=True, feedback=general_feedback)

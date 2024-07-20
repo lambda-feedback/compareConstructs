@@ -1,5 +1,5 @@
-# _, msg = check_syntax(response)
 
+# _, msg = check_syntax(response)
 general_errors = ["NameError", "TypeError", "IndexError", "ValueError", "AttributeError",
                   "ModuleNotFoundError", "ZeroDivisionError", "FileNotFoundError", "OverflowError",
                   "UnboundLocalError"]
@@ -54,3 +54,5 @@ def general_error_format(error_type, message_lines):
     line_location = message_lines[-2].split(",")[1].lstrip()
     error_detail = message_lines[-1].split(":")[1].lstrip()
     return f"{error_type}: at {line_location}, {error_detail}"
+
+

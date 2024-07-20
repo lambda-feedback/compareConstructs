@@ -1,7 +1,13 @@
 from typing import Any, TypedDict
 import os
 import subprocess
-from .format import message_format
+try:
+    from .format import message_format
+    from .dynamic_import import module_import
+except ImportError:
+    # run it on the local machine
+    from format import message_format
+
 
 class Params(TypedDict):
     is_unique_answer: bool
@@ -81,10 +87,12 @@ def check_indents(code_string: str) -> bool:
 def general_check(code_string) -> str:
     if not check_indents(code_string):
         return f"Indent error, the indent should only be multiple of 2 or 4"
+    # import necessary modules dynamically
+    module_import(code_string)
     is_syntax_correct, msg = check_syntax(code_string)
     if not is_syntax_correct:
         return f"Error occurs, please check the details below: <br>{message_format(msg)}"
-    
+
     return "General check passed!"
 
 
@@ -136,3 +144,5 @@ def check_each_letter(response, answer):
     return answer.replace(" ", "").replace("\t", "").replace("\n", "") == response.replace(" ", "").replace("\t",
                                                                                                             "").replace(
         "\n", "")
+
+

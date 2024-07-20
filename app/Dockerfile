@@ -8,12 +8,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
-# Copy the evaluation and testing scripts
+
 COPY evaluation.py ./app/
 COPY evaluation_tests.py ./app/
 COPY format.py ./app/
-
-# Copy the preview and testing scripts
+COPY dynamic_import.py ./app/
 COPY preview.py ./app/
 COPY preview_tests.py ./app/
 

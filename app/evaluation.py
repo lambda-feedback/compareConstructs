@@ -1,9 +1,11 @@
 from typing import Any, TypedDict
 import os
 import subprocess
+
 try:
-    from .format import message_format
+    from .format import message_format, ai_content_format
     from .dynamic_import import module_import
+    from .aifeedback import ai_check
 except ImportError:
     # run it on the local machine
     from format import message_format
@@ -47,7 +49,9 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
         if not check_answer_with_output(response, answer):
             return Result(is_correct=False, feedback=general_feedback)
         return Result(is_correct=True, feedback=general_feedback)
-
+    if params['is_ai_feedback']:
+        result = ai_feedback(response, answer)
+        return Result(is_correct=result['Bool'], feedback=result['Feedback'])
 
 def check_indents(code_string: str) -> bool:
     """
@@ -146,3 +150,11 @@ def check_each_letter(response, answer):
         "\n", "")
 
 
+def ai_feedback(response, answer):
+    """
+    use chat GPT-4 to give feedback. However, there has a tiny probability to get the wrong reply content and format of
+    AI feedback
+    """
+    reply = ai_check(response, answer)
+    result = ai_content_format(reply)
+    return result

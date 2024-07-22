@@ -23,10 +23,16 @@ class TestEvaluationFunction(unittest.TestCase):
     """
 
     def test_general_eval(self):
-        response = """import simpy
-print(simpy)
-"""
-        result = evaluation_function(response, response, Params(is_unique_answer=True, is_ai_feedback=False, is_multiple_answers=False, has_output=True))
+        response = """
+for i in range(5):
+    print(i)"""
+
+        answer = """
+count = 0
+while count < 5:
+    print(count)
+    count += 1"""
+        result = evaluation_function(response, response, Params(is_unique_answer=False, is_ai_feedback=True, is_multiple_answers=False, has_output=True))
         assert result['is_correct']
         print(result['feedback'])
 

@@ -26,7 +26,7 @@ def cmd_import(module_list):
                 # pip is installed on the local machine (windows)
                 subprocess.check_call([sys.executable, "-m", "pip", "install", module_name])
             except Exception:
-                # pip3 might be installed for the website 
+                # pip3 might be installed for the website
                 subprocess.check_call([sys.executable, "-m", "pip3", "install", module_name])
             importlib.import_module(module_name)
 

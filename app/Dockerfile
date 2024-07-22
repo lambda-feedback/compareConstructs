@@ -15,6 +15,8 @@ COPY format.py ./app/
 COPY dynamic_import.py ./app/
 COPY preview.py ./app/
 COPY preview_tests.py ./app/
+COPY dynamic_import.py ./app/
+COPY aifeedback.py ./app/
 
 # Copy Documentation
 COPY docs/dev.md ./app/docs/dev.md

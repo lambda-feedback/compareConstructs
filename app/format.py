@@ -1,3 +1,4 @@
+from app.aifeedback import ai_check
 
 # _, msg = check_syntax(response)
 general_errors = ["NameError", "TypeError", "IndexError", "ValueError", "AttributeError",
@@ -54,5 +55,21 @@ def general_error_format(error_type, message_lines):
     line_location = message_lines[-2].split(",")[1].lstrip()
     error_detail = message_lines[-1].split(":")[1].lstrip()
     return f"{error_type}: at {line_location}, {error_detail}"
+
+
+def ai_content_format(reply_content):
+    result = {}
+
+    # get the Bool pair:
+    pair_idx = reply_content.find("Feedback")
+    bool_msg = reply_content[:pair_idx]
+    feedback_msg = reply_content[pair_idx:]
+    if 'True' in bool_msg:
+        result['Bool'] = True
+    else:
+        result['Bool'] = False
+    result['Feedback'] = feedback_msg[feedback_msg.find(': ') + 1:]
+
+    return result
 
 

@@ -4,8 +4,8 @@ import os
 
 
 def ai_check(response, answer):
-    load_dotenv()
-    openai.api_key = os.getenv('OPENAI_API_KEY')
+    load_dotenv(dotenv_path="app/.env")
+    openai.api_key = os.environ.get("OPENAI_API_KEY")
     completion = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[{"role": "user",

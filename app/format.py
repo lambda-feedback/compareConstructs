@@ -1,3 +1,4 @@
+import re
 
 general_errors = ["NameError", "TypeError", "IndexError", "ValueError", "AttributeError",
                   "ModuleNotFoundError", "ZeroDivisionError", "FileNotFoundError", "OverflowError",
@@ -69,5 +70,20 @@ def ai_content_format(reply_content):
     result['Feedback'] = feedback_msg[feedback_msg.find(': ') + 1:]
 
     return result
+
+
+def response_format(code_string):
+    """
+    This format includes:
+    remove the unnecessary indents
+    categorize the structure of the format: classes and methods
+    """
+    code_lines = code_string.strip().split('\n')
+    return [re.sub(r'\n\s*\n+', '\n', code_line) for code_line in code_lines]
+
+
+
+
+
 
 

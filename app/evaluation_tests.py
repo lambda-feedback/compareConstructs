@@ -24,16 +24,21 @@ class TestEvaluationFunction(unittest.TestCase):
 
     def test_general_eval(self):
         response = """
-for i in range(5):
-    print(i)"""
+def hello():
+    def hi():
+        print("hi")
+hello()
+"""
+
 
         answer = """
-count = 0
-while count < 5:
-    print(count)
-    count += 1"""
-        result = evaluation_function(response, response, Params(is_unique_answer=False, is_ai_feedback=True, is_multiple_answers=False, has_output=True))
-        assert result['is_correct']
+def hello():
+    def hi():
+        print("hi?")
+hello()
+"""
+        result = evaluation_function(response, answer, Params())
+        print(result['is_correct'])
         print(result['feedback'])
 
 

@@ -17,6 +17,8 @@ COPY preview.py ./app/
 COPY preview_tests.py ./app/
 COPY dynamic_import.py ./app/
 COPY aifeedback.py ./app/
+COPY general_check.py ./app/
+COPY structure.py ./app/
 
 # Copy Documentation
 COPY docs/dev.md ./app/docs/dev.md

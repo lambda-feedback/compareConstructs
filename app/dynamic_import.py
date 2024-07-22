@@ -31,8 +31,7 @@ def cmd_import(module_list):
             importlib.import_module(module_name)
 
 
-def module_import(code_string):
-    lines = code_string.strip().split('\n')
-    module_list = module_dependency(lines)
+def module_import(code_lines):
+    module_list = module_dependency(code_lines)
     cmd_import(module_list)
 

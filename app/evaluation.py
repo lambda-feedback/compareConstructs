@@ -1,4 +1,7 @@
+import random
 from typing import Any, TypedDict
+from .general_check import check
+from .structure import structure_check
 import os
 import subprocess
 
@@ -9,13 +12,12 @@ try:
 except ImportError:
     # run it on the local machine
     from format import message_format
+    from dynamic_import import module_import
+    from aifeedback import ai_check
 
 
 class Params(TypedDict):
-    is_unique_answer: bool
-    is_multiple_answers: bool
-    is_ai_feedback: bool
-    has_output: bool
+    pass
 
 
 class Result(TypedDict):
@@ -42,80 +44,46 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     return types and that evaluation_function() is the main function used
     to output the evaluation response.
     """
-    general_feedback = general_check(response)
+    general_feedback = check(response)
     if general_feedback != "General check passed!":
         return Result(is_correct=False, feedback=general_feedback)
-    if params['has_output'] and params['is_unique_answer']:
-        if not check_answer_with_output(response, answer):
-            return Result(is_correct=False, feedback=general_feedback)
-        return Result(is_correct=True, feedback=general_feedback)
-    if params['is_ai_feedback']:
-        result = ai_feedback(response, answer)
-        return Result(is_correct=result['Bool'], feedback=result['Feedback'])
 
-def check_indents(code_string: str) -> bool:
-    """
-    This function checks the indentation correctness of the given Python code.
-    Notice that indentation depends on student preference: (2 spaces or 4 spaces are acceptable)
-    :param code_string: str, the Python code to be checked.
-    :return: bool, True if the indentation is correct, otherwise False.
-    """
-    indent_levels = []
-    lines = code_string.strip().split('\n')
-    for line in lines:
-        indent_level = len(line) - len(line.lstrip(' '))
-        indent_levels.append(indent_level)
-
-    # first line should not have any indents
-    if indent_levels[0] != 0:
-        return False
-
-    # find the correctness indent: 2 or 4 spaces
-    indent_difference = 0
-    for indent_level in indent_levels:
-        if indent_level > 0:
-            indent_difference = indent_level
-            break
-
-    # zero indent only occur when they are no any syntax like (if, for)
-    if indent_difference == 0:
-        return all(indent_level == 0 for indent_level in indent_levels)
-
-    # correct indents
-    if indent_difference != 2 and indent_difference != 4:
-        return False
-
-    return all(indent_level % indent_difference == 0 for indent_level in indent_levels)
-
-
-def general_check(code_string) -> str:
-    if not check_indents(code_string):
-        return f"Indent error, the indent should only be multiple of 2 or 4"
-    # import necessary modules dynamically
-    module_import(code_string)
-    is_syntax_correct, msg = check_syntax(code_string)
-    if not is_syntax_correct:
-        return f"Error occurs, please check the details below: <br>{message_format(msg)}"
-
-    return "General check passed!"
-
-
-def check_syntax(code_string):
-    try:
-        result = subprocess.run(['python', '-c', code_string], capture_output=True)
-        if result.returncode != 0:
-            try:
-                stderr = result.stderr.decode('utf-8')
-            except UnicodeDecodeError:
-                stderr = result.stderr.decode('utf-8', errors='replace')
-            return False, f"Error: {stderr}"
+    msg = check_has_output(answer)
+    correct_feedback = random.choice(["Good Job!", "Well Done!"])
+    error_feedback = ""
+    if msg:
+        if not check_answer_with_output(response, msg):
+            error_feedback = "The output is different to given answer: \n"
+            extra_error_feedback = not_ai_feedback(response, answer)
+            error_feedback += extra_error_feedback
+            return Result(is_correct=False, feedback=error_feedback)
         else:
-            return True, result.stdout.decode('utf-8')
+            return Result(is_correct=True, feedback=correct_feedback)
+    else:
+        if check_each_letter(response, answer):
+            return Result(is_correct=True, feedback=correct_feedback)
+
+    error_feedback = not_ai_feedback(response, answer)
+    # if no extra error feedback, we might need to call for AI
+    if error_feedback:
+        return Result(is_correct=False, feedback=error_feedback)
+    result = ai_feedback(response, answer)
+    return Result(is_correct=result['Bool'], feedback=result['Feedback'])
+
+
+def check_has_output(answer):
+    try:
+        ans_result = subprocess.run(['python', '-c', answer], capture_output=True, text=True)
+        if ans_result.returncode != 0:
+            ans_feedback = f"Error: {ans_result.stderr.strip()}"
+        else:
+            ans_feedback = ans_result.stdout.strip()
     except Exception as e:
-        return False, f"Exception occurred: {str(e)}"
+        ans_feedback = f"Exception occurred: {str(e)}"
+    return ans_feedback
 
 
-def check_answer_with_output(response, answer):
+def check_answer_with_output(response, output_msg):
     """
     The function is called iff the answer is unique. i.e. aList = [1,2,3,4,5] is the unique answer
     Notice that styles (at least they can pass general check) are NOT sensitive
@@ -128,16 +96,7 @@ def check_answer_with_output(response, answer):
             res_feedback = res_result.stdout.strip()
     except Exception as e:
         res_feedback = f"Exception occurred: {str(e)}"
-    try:
-        ans_result = subprocess.run(['python', '-c', answer], capture_output=True, text=True)
-        if ans_result.returncode != 0:
-            ans_feedback = f"Error: {ans_result.stderr.strip()}"
-        else:
-            ans_feedback = ans_result.stdout.strip()
-    except Exception as e:
-        ans_feedback = f"Exception occurred: {str(e)}"
-
-    return res_feedback == ans_feedback
+    return res_feedback == output_msg
 
 
 def check_each_letter(response, answer):
@@ -158,3 +117,11 @@ def ai_feedback(response, answer):
     reply = ai_check(response, answer)
     result = ai_content_format(reply)
     return result
+
+
+def not_ai_feedback(response, answer):
+    feedback = ""
+    if not structure_check(response, answer):
+        feedback = "The methods or classes are not correctly defined.\n"
+    # TODO implement other check functionalities
+    return feedback

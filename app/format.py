@@ -1,6 +1,4 @@
-from app.aifeedback import ai_check
 
-# _, msg = check_syntax(response)
 general_errors = ["NameError", "TypeError", "IndexError", "ValueError", "AttributeError",
                   "ModuleNotFoundError", "ZeroDivisionError", "FileNotFoundError", "OverflowError",
                   "UnboundLocalError"]

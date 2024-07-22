@@ -27,15 +27,13 @@ class TestEvaluationFunction(unittest.TestCase):
 def hello():
     def hi():
         print("hi")
+    hi()
 hello()
 """
 
 
         answer = """
-def hello():
-    def hi():
-        print("hi?")
-hello()
+print("hi")
 """
         result = evaluation_function(response, answer, Params())
         print(result['is_correct'])

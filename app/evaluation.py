@@ -50,12 +50,13 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
 
     msg = check_has_output(answer)
     correct_feedback = random.choice(["Good Job!", "Well Done!"])
-    error_feedback = ""
+    error_feedback = no_ai_feedback(response, answer)
+    # if no extra error feedback, we might need to call for AI
+    if error_feedback:
+        return Result(is_correct=False, feedback=error_feedback)
     if msg:
         if not check_answer_with_output(response, msg):
             error_feedback = "The output is different to given answer: \n"
-            extra_error_feedback = not_ai_feedback(response, answer)
-            error_feedback += extra_error_feedback
             return Result(is_correct=False, feedback=error_feedback)
         else:
             return Result(is_correct=True, feedback=correct_feedback)
@@ -63,10 +64,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
         if check_each_letter(response, answer):
             return Result(is_correct=True, feedback=correct_feedback)
 
-    error_feedback = not_ai_feedback(response, answer)
-    # if no extra error feedback, we might need to call for AI
-    if error_feedback:
-        return Result(is_correct=False, feedback=error_feedback)
+
     result = ai_feedback(response, answer)
     return Result(is_correct=result['Bool'], feedback=result['Feedback'])
 
@@ -119,7 +117,7 @@ def ai_feedback(response, answer):
     return result
 
 
-def not_ai_feedback(response, answer):
+def no_ai_feedback(response, answer):
     feedback = ""
     if not structure_check(response, answer):
         feedback = "The methods or classes are not correctly defined.\n"

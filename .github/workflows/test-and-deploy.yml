@@ -23,7 +23,7 @@ jobs:
 
     env:
       SCHEMAS_URL: https://raw.githubusercontent.com/lambda-feedback/request-response-schemas/master/
-
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2

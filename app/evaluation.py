@@ -1,7 +1,13 @@
 import random
 from typing import Any, TypedDict
-from .general_check import check
-from .structure import structure_check
+
+try:
+    from .variable_check import check_variable_content
+    from .general_check import check
+    from .structure import structure_check
+except ImportError:
+    from general_check import check
+    from structure import structure_check
 import os
 import subprocess
 
@@ -17,7 +23,7 @@ except ImportError:
 
 
 class Params(TypedDict):
-    pass
+    check_list: list
 
 
 class Result(TypedDict):
@@ -51,7 +57,6 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     msg = check_has_output(answer)
     correct_feedback = random.choice(["Good Job!", "Well Done!"])
     error_feedback = no_ai_feedback(response, answer)
-    # if no extra error feedback, we might need to call for AI
     if error_feedback:
         return Result(is_correct=False, feedback=error_feedback)
     if msg:
@@ -63,7 +68,12 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     else:
         if check_each_letter(response, answer):
             return Result(is_correct=True, feedback=correct_feedback)
-
+        is_correct, feedback = check_variable_content(response, answer, params['check_list'])
+        if not is_correct:
+            return Result(is_correct=False, feedback=feedback)
+        else:
+            if feedback != "NotDefined":
+                return Result(is_correct=True, feedback=correct_feedback)
 
     result = ai_feedback(response, answer)
     return Result(is_correct=result['Bool'], feedback=result['Feedback'])
@@ -123,3 +133,7 @@ def no_ai_feedback(response, answer):
         feedback = "The methods or classes are not correctly defined.\n"
     # TODO implement other check functionalities
     return feedback
+
+
+if __name__ == '__main__':
+    pass

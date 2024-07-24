@@ -9,7 +9,7 @@ def ai_check(response, answer):
     completion = openai.ChatCompletion.create(
         model="gpt-4",
         messages=[{"role": "user",
-                   "content": f"Given the following response: \n {response} and answer\n{answer}\n"
+                   "content": f"Given the following student response: \n\"{response}\"\n and answer: \n\"{answer}\"\n"
                               f"Give me feedbacks of the response in the form of 'Bool' (True or False), 'Feedback' (The feedback of the response"}]
 
     )

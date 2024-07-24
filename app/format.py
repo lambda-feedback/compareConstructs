@@ -67,9 +67,18 @@ def ai_content_format(reply_content):
         result['Bool'] = True
     else:
         result['Bool'] = False
-    result['Feedback'] = feedback_msg[feedback_msg.find(': ') + 1:]
+    result['Feedback'] = feedback_msg[feedback_msg.find(': ') + 1:].lstrip()
 
     return result
+
+
+def annotation_format(code_string):
+    """
+    This format includes:
+    replace annotation to a single line
+    """
+    # TODO
+    pass
 
 
 def response_format(code_string):

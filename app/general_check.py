@@ -1,5 +1,9 @@
-from .dynamic_import import module_import
-from .format import message_format, response_format
+try:
+    from .dynamic_import import module_import
+    from .format import message_format, response_format
+except ImportError:
+    from dynamic_import import module_import
+    from format import message_format, response_format
 import subprocess
 
 
@@ -39,8 +43,8 @@ def check(code_string) -> str:
     formatted_code_lines = response_format(code_string)
     if not check_indents(formatted_code_lines):
         return f"Indent error, the indent should only be multiple of 2 or 4"
-    # import necessary modules dynamically
-    module_import(formatted_code_lines)
+    # import necessary modules dynamically (not in use)
+    # module_import(formatted_code_lines)
     is_syntax_correct, msg = check_syntax(code_string)
     if not is_syntax_correct:
         return f"Error occurs, please check the details below: <br>{message_format(msg)}"

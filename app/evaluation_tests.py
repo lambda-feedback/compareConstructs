@@ -24,18 +24,22 @@ class TestEvaluationFunction(unittest.TestCase):
 
     def test_general_eval(self):
         response = """
-def hello():
-    def hi():
-        print("hi")
-    hi()
-hello()
+x = 0.5
+
+for n in range(9):
+    x = (x + 5) / (x + 1)
+
+
 """
 
 
         answer = """
-print("hi")
+x = 0.5
+
+for i in range(10):
+    x = (x + 5) / (x + 1)
 """
-        result = evaluation_function(response, answer, Params())
+        result = evaluation_function(response, answer, Params(check_list=['x']))
         print(result['is_correct'])
         print(result['feedback'])
 

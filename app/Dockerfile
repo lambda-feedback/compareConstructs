@@ -19,6 +19,8 @@ COPY dynamic_import.py ./app/
 COPY aifeedback.py ./app/
 COPY general_check.py ./app/
 COPY structure.py ./app/
+COPY output_traceback.py ./app/
+COPY variable_check.py ./app/
 
 # Copy Documentation
 COPY docs/dev.md ./app/docs/dev.md

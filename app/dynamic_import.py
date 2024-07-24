@@ -1,6 +1,14 @@
 import importlib
 import sys
 import subprocess
+import importlib.util
+
+
+def is_builtin_module(module_name):
+    spec = importlib.util.find_spec(module_name)
+    if spec is None:
+        return False  # Module not found
+    return spec.origin == 'built-in'
 
 
 def module_dependency(code_lines):
@@ -11,24 +19,25 @@ def module_dependency(code_lines):
         if 'from' in segment_list and 'import' in segment_list:
             module_list.append(segment_list[segment_list.index('from') + 1])
         # check the format like: import numpy as np
-        if 'import' in segment_list:
+        elif 'import' in segment_list:
             module_list.append(segment_list[segment_list.index('import') + 1])
     return module_list
 
 
 def cmd_import(module_list):
     for module_name in module_list:
-        try:
-            # check whether the module exists
-            importlib.import_module(module_name)
-        except ImportError:
+        if not is_builtin_module(module_name):
             try:
-                # pip is installed on the local machine (windows)
-                subprocess.check_call([sys.executable, "-m", "pip", "install", module_name])
-            except Exception:
-                # pip3 might be installed for the website
-                subprocess.check_call([sys.executable, "-m", "pip3", "install", module_name])
-            importlib.import_module(module_name)
+                # check whether the module exists
+                importlib.import_module(module_name)
+            except ImportError:
+                try:
+                    # pip is installed on the local machine (windows)
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", module_name])
+                except Exception:
+                    # pip3 might be installed for the website
+                    subprocess.check_call([sys.executable, "-m", "pip3", "install", module_name])
+                importlib.import_module(module_name)
 
 
 def module_import(code_lines):

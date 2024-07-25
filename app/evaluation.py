@@ -2,12 +2,15 @@ import random
 from typing import Any, TypedDict
 
 try:
-    from .variable_check import check_variable_content
+    from .global_variable_check import check_global_variable_content
+    from .local_variable_check import check_local_variable_content
     from .general_check import check
-    from .structure import structure_check
+    from .structure_check import check_structure
 except ImportError:
     from general_check import check
-    from structure import structure_check
+    from structure_check import check_structure
+    from global_variable_check import check_global_variable_content
+    from local_variable_check import check_local_variable_content
 import os
 import subprocess
 
@@ -68,12 +71,18 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     else:
         if check_each_letter(response, answer):
             return Result(is_correct=True, feedback=correct_feedback)
-        is_correct, feedback = check_variable_content(response, answer, params['check_list'])
+        is_correct, feedback, remaining_check_list = check_global_variable_content(response, answer, params['check_list'])
         if not is_correct:
             return Result(is_correct=False, feedback=feedback)
         else:
-            if feedback != "NotDefined":
+            if remaining_check_list == 0:
                 return Result(is_correct=True, feedback=correct_feedback)
+            is_correct, feedback = check_local_variable_content(response, answer, params['check_list'])
+            if is_correct:
+                if feedback != "NotDefined":
+                    return Result(is_correct=True, feedback=correct_feedback)
+            else:
+                return Result(is_correct=False, feedback=feedback)
 
     result = ai_feedback(response, answer)
     return Result(is_correct=result['Bool'], feedback=result['Feedback'])
@@ -129,7 +138,7 @@ def ai_feedback(response, answer):
 
 def no_ai_feedback(response, answer):
     feedback = ""
-    if not structure_check(response, answer):
+    if not check_structure(response, answer):
         feedback = "The methods or classes are not correctly defined.\n"
     # TODO implement other check functionalities
     return feedback

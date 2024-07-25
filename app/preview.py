@@ -39,3 +39,15 @@ def preview_function(response: Any, params: Params) -> Result:
 
 
 
+
+
+
+
+
+arr1 = []
+def hi():
+    arr2 = []
+    arr1.append(1)
+    arr2.append(3)
+arr1.append(3)
+hi()

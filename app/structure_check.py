@@ -9,13 +9,13 @@ def extract_definitions(node, parent=None):
             if parent is None:
                 definitions.append((child.name, "2"))
             else:
-                definitions.append((child.name, "2"))
+                definitions.append((child.name, parent))
             definitions.extend(extract_definitions(child, parent=child.name))
         elif isinstance(child, ast.ClassDef):
             if parent is None:
                 definitions.append((child.name, "2"))
             else:
-                definitions.append((child.name, "2"))
+                definitions.append((child.name, parent))
             definitions.extend(extract_definitions(child, parent=child.name))
     return definitions
 
@@ -28,5 +28,21 @@ def split_structure(code_str):
     return hierarchy
 
 
-def structure_check(response, answer):
+def check_structure(response, answer):
     return set(split_structure(response)) == set(split_structure(answer))
+
+
+if __name__ == '__main__':
+    response = """
+def hello():
+    def hi():
+        pass"""
+
+    answer = """
+def hello():
+    def hil():
+        pass"""
+
+    print(split_structure(response))
+    print(split_structure(answer))
+    print(check_structure(response, answer))

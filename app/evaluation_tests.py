@@ -24,25 +24,33 @@ class TestEvaluationFunction(unittest.TestCase):
 
     def test_general_eval(self):
         response = """
-x = 0.5
-
-for n in range(9):
-    x = (x + 5) / (x + 1)
-
-
+arr1 = []
+def hi():
+    arr2 = []
+    arr1.append(1)
+arr1.append(3)
+def hello():
+    arr1.append(2)
+hello()
 """
 
 
         answer = """
-x = 0.5
-
-for i in range(10):
-    x = (x + 5) / (x + 1)
+arr1 = []
+def hi():
+    arr2 = []
+    arr1.append(2)
+arr1.append(3)
+def hello():
+    arr1.append(1)
+hi()
 """
-        result = evaluation_function(response, answer, Params(check_list=['x']))
+        result = evaluation_function(response, answer, Params(check_list=['arr1', 'arr2']))
         print(result['is_correct'])
         print(result['feedback'])
 
 
 if __name__ == "__main__":
     unittest.main()
+
+

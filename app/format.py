@@ -89,10 +89,3 @@ def response_format(code_string):
     """
     code_lines = code_string.strip().split('\n')
     return [re.sub(r'\n\s*\n+', '\n', code_line) for code_line in code_lines]
-
-
-
-
-
-
-

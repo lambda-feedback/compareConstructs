@@ -26,7 +26,8 @@ except ImportError:
 
 
 class Params(TypedDict):
-    check_list: list
+    # TODO it will be list after the website updates
+    check_list: str
 
 
 class Result(TypedDict):
@@ -71,13 +72,13 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     else:
         if check_each_letter(response, answer):
             return Result(is_correct=True, feedback=correct_feedback)
-        is_correct, feedback, remaining_check_list = check_global_variable_content(response, answer, params['check_list'])
+        is_correct, feedback, remaining_check_list = check_global_variable_content(response, answer, params['check_list'].split(','))
         if not is_correct:
             return Result(is_correct=False, feedback=feedback)
         else:
             if remaining_check_list == 0:
                 return Result(is_correct=True, feedback=correct_feedback)
-            is_correct, feedback = check_local_variable_content(response, answer, params['check_list'])
+            is_correct, feedback = check_local_variable_content(response, answer, params['check_list'].split(','))
             if is_correct:
                 if feedback != "NotDefined":
                     return Result(is_correct=True, feedback=correct_feedback)

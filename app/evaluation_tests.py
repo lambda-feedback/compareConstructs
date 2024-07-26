@@ -45,7 +45,7 @@ def hello():
     arr1.append(1)
 hi()
 """
-        result = evaluation_function(response, answer, Params(check_list=['arr1', 'arr2']))
+        result = evaluation_function(response, answer, Params(check_list="arr1, arr2"))
         print(result['is_correct'])
         print(result['feedback'])
 

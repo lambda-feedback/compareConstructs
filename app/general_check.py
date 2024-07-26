@@ -39,7 +39,7 @@ def check_indents(formatted_code_lines) -> bool:
     return all(indent_level % indent_difference == 0 for indent_level in indent_levels)
 
 
-def check(code_string) -> str:
+def check(code_string):
     formatted_code_lines = response_format(code_string)
     if not check_indents(formatted_code_lines):
         return f"Indent error, the indent should only be multiple of 2 or 4"
@@ -49,10 +49,10 @@ def check(code_string) -> str:
     if not is_syntax_correct:
         return f"Error occurs, please check the details below: <br>{message_format(msg)}"
 
-    return "General check passed!"
+    return "General check passed!", msg
 
 
-def check_syntax(code_string):
+def check_syntax(code_string) -> (bool, str):
     try:
         result = subprocess.run(['python', '-c', code_string], capture_output=True)
         if result.returncode != 0:
@@ -60,8 +60,8 @@ def check_syntax(code_string):
                 stderr = result.stderr.decode('utf-8')
             except UnicodeDecodeError:
                 stderr = result.stderr.decode('utf-8', errors='replace')
-            return False, f"Error: {stderr}"
+            return False, stderr
         else:
             return True, result.stdout.decode('utf-8')
-    except Exception as e:
-        return False, f"Exception occurred: {str(e)}"
+    except Exception:
+        return False, "Exception occurs during execution"

@@ -41,13 +41,8 @@ def preview_function(response: Any, params: Params) -> Result:
 
 
 
-
-
-
-arr1 = []
-def hi():
-    arr2 = []
-    arr1.append(1)
-    arr2.append(3)
-arr1.append(3)
-hi()
+import numpy as np
+x1 = np.arange(-5, -2, 0.5)
+x2 = np.arange(-2, 3, 0.05)
+x3 = np.arange(3, 5+0.5, 0.5)
+x = np.concatenate((x1, x2, x3))

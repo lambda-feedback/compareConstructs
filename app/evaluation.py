@@ -4,10 +4,10 @@ from typing import Any, TypedDict
 try:
     from .global_variable_check import check_global_variable_content
     from .local_variable_check import check_local_variable_content
-    from .general_check import check
+    from .general_check import check, check_syntax
     from .structure_check import check_structure
 except ImportError:
-    from general_check import check
+    from general_check import check, check_syntax
     from structure_check import check_structure
     from global_variable_check import check_global_variable_content
     from local_variable_check import check_local_variable_content
@@ -54,11 +54,12 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     return types and that evaluation_function() is the main function used
     to output the evaluation response.
     """
-    general_feedback = check(response)
+    general_feedback, _ = check(response)
+    is_correct_answer, msg = check_syntax(answer)
+    if not is_correct_answer:
+        return Result(is_correct=False, feedback="Please contact your teacher to give correct answer!")
     if general_feedback != "General check passed!":
         return Result(is_correct=False, feedback=general_feedback)
-
-    msg = check_has_output(answer)
     correct_feedback = random.choice(["Good Job!", "Well Done!"])
     error_feedback = no_ai_feedback(response, answer)
     if error_feedback:
@@ -76,9 +77,9 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
         if not is_correct:
             return Result(is_correct=False, feedback=feedback)
         else:
-            if remaining_check_list == 0:
+            if len(remaining_check_list) == 0:
                 return Result(is_correct=True, feedback=correct_feedback)
-            is_correct, feedback = check_local_variable_content(response, answer, params['check_list'].split(','))
+            is_correct, feedback = check_local_variable_content(response, answer, remaining_check_list)
             if is_correct:
                 if feedback != "NotDefined":
                     return Result(is_correct=True, feedback=correct_feedback)
@@ -87,18 +88,6 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
 
     result = ai_feedback(response, answer)
     return Result(is_correct=result['Bool'], feedback=result['Feedback'])
-
-
-def check_has_output(answer):
-    try:
-        ans_result = subprocess.run(['python', '-c', answer], capture_output=True, text=True)
-        if ans_result.returncode != 0:
-            ans_feedback = f"Error: {ans_result.stderr.strip()}"
-        else:
-            ans_feedback = ans_result.stdout.strip()
-    except Exception as e:
-        ans_feedback = f"Exception occurred: {str(e)}"
-    return ans_feedback
 
 
 def check_answer_with_output(response, output_msg):

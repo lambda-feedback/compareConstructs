@@ -1,8 +1,10 @@
 import ast
 import builtins
 import types
+import copy
+import numpy as np
 
-
+tolerance = 1e-8
 class VariableVisitor(ast.NodeVisitor):
     def __init__(self):
         self.variables = set()
@@ -50,19 +52,30 @@ def check_global_variable_content(response, answer, check_list: list, global_res
     is_correct = True
     is_defined = True
 
-    remaining_check_list = check_list
+    remaining_check_list = copy.deepcopy(check_list)
 
     for var in check_list:
         # sometimes execute the code doesn't change the variable value i.e. local variable in a method
         if var in intersections:
 
             if answer_var_dict[var] is not None:
+                if type(response_var_dict[var]) != type(answer_var_dict[var]):
+                    return False, f"The type of '{var}' is not correct. Expected: {type(answer_var_dict[var])}", remaining_check_list
 
-                if response_var_dict[var] != answer_var_dict[var]:
-                    error_var_contents.append(var)
-                    is_correct = False
+                if isinstance(answer_var_dict[var], np.ndarray):
+                    try:
+                        error_var_contents, is_correct, remaining_check_list = update_info(
+                            var, np.allclose(response_var_dict[var], answer_var_dict[var], atol=tolerance),
+                            error_var_contents, remaining_check_list
+                        )
+                    except Exception as e:
+                        return False, f"{type(e).__name__} of '{var}': {e}", remaining_check_list
                 else:
-                    remaining_check_list.remove(var)
+                    error_var_contents, is_correct, remaining_check_list = update_info(
+                        var, response_var_dict[var] == answer_var_dict[var],
+                        error_var_contents, remaining_check_list
+                    )
+
             else:
                 is_defined = False
 
@@ -78,3 +91,13 @@ def check_global_variable_content(response, answer, check_list: list, global_res
         elif len(error_var_contents) >= 2:
             feedback += f"""The values of '{"', '".join(error_var_contents)}' are not correct\n"""
         return False, feedback, remaining_check_list
+
+
+def update_info(var, is_equal, error_var_contents, remaining_check_list):
+    is_correct = True
+    if is_equal:
+        remaining_check_list.remove(var)
+    else:
+        error_var_contents.append(var)
+        is_correct = False
+    return error_var_contents, is_correct, remaining_check_list

@@ -49,7 +49,7 @@ def check(code_string):
     if not is_syntax_correct:
         return f"Error occurs, please check the details below: <br>{message_format(msg)}"
 
-    return "General check passed!", msg
+    return "General check passed!"
 
 
 def check_syntax(code_string) -> (bool, str):

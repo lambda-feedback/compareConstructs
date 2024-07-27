@@ -4,7 +4,14 @@ import types
 import copy
 import numpy as np
 
+try:
+    from .same_variable_content_check import check_same_content_with_different_variable
+except ImportError:
+    from same_variable_content_check import check_same_content_with_different_variable
+
 tolerance = 1e-8
+
+
 class VariableVisitor(ast.NodeVisitor):
     def __init__(self):
         self.variables = set()
@@ -36,14 +43,19 @@ def check_global_variable_content(response, answer, check_list: list, global_res
     Teacher should give a variable check-list for us due to the importance of the variables relying on the Teacher's goal
     """
     response = f"{global_response_variable_content}\n{response}"
+
     answer = f"{global_answer_variable_content}\n{answer}"
     response_var_dict = variable_content(response)
     answer_var_dict = variable_content(answer)
+
+    # sometimes students give us different variable names, but we could figure the difference
+    response, response_var_dict = check_same_content_with_different_variable(response, check_list, response_var_dict,
+                                                                             answer_var_dict)
     # sometimes local variables are defined in the outer scope
     if "err" in answer_var_dict.keys():
-        return False, "NameError", check_list
+        return False, "NameError", check_list, response
     if "err" in response_var_dict.keys():
-        return False, "NameError", check_list
+        return False, "NameError", check_list, response
     # check whether they have the same variable names
     answer_var_set = answer_var_dict.keys()
     response_var_set = response_var_dict.keys()
@@ -59,45 +71,53 @@ def check_global_variable_content(response, answer, check_list: list, global_res
         if var in intersections:
 
             if answer_var_dict[var] is not None:
-                if type(response_var_dict[var]) != type(answer_var_dict[var]):
-                    return False, f"The type of '{var}' is not correct. Expected: {type(answer_var_dict[var])}", remaining_check_list
-
-                if isinstance(answer_var_dict[var], np.ndarray):
-                    try:
-                        error_var_contents, is_correct, remaining_check_list = update_info(
-                            var, np.allclose(response_var_dict[var], answer_var_dict[var], atol=tolerance),
-                            error_var_contents, remaining_check_list
-                        )
-                    except Exception as e:
-                        return False, f"{type(e).__name__} of '{var}': {e}", remaining_check_list
-                else:
-                    error_var_contents, is_correct, remaining_check_list = update_info(
-                        var, response_var_dict[var] == answer_var_dict[var],
-                        error_var_contents, remaining_check_list
-                    )
-
+                is_correct, msg, error_var_contents, remaining_check_list = is_equal(
+                    var, response_var_dict[var], answer_var_dict[var], error_var_contents,
+                    remaining_check_list
+                )
+                if not is_correct:
+                    return False, msg, remaining_check_list, response
             else:
                 is_defined = False
 
     if is_correct:
         if is_defined:
-            return True, "", remaining_check_list
+            return True, "", remaining_check_list, response
         else:
-            return True, "NotDefined", remaining_check_list
+            return True, "NotDefined", remaining_check_list, response
     else:
         feedback = ""
         if 0 < len(error_var_contents) < 2:
             feedback += f"""The value of '{"', '".join(error_var_contents)}' is not correct\n"""
         elif len(error_var_contents) >= 2:
             feedback += f"""The values of '{"', '".join(error_var_contents)}' are not correct\n"""
-        return False, feedback, remaining_check_list
+        return False, feedback, remaining_check_list, response
 
 
-def update_info(var, is_equal, error_var_contents, remaining_check_list):
+def is_equal(variable_name, response_variable_content, answer_variable_content, error_var_contents,
+             remaining_check_list):
     is_correct = True
-    if is_equal:
-        remaining_check_list.remove(var)
+    if type(response_variable_content) != type(answer_variable_content):
+        return False, f"The type of '{variable_name}' is not correct. Expected: {type(answer_variable_content).__name__}", \
+            error_var_contents, remaining_check_list
+
+    if isinstance(answer_variable_content, np.ndarray):
+        try:
+            is_correct = np.allclose(response_variable_content, answer_variable_content)
+        except Exception as e:
+            return False, f"{type(e).__name__} of '{variable_name}': {e}", error_var_contents, remaining_check_list
+
+
     else:
-        error_var_contents.append(var)
-        is_correct = False
-    return error_var_contents, is_correct, remaining_check_list
+        try:
+            is_correct = response_variable_content == answer_variable_content
+        except Exception as e:
+            return False, f"{type(e).__name__} of '{variable_name}': {e}", error_var_contents, remaining_check_list
+
+    if is_correct:
+        remaining_check_list.pop()
+        return True, "", error_var_contents, remaining_check_list
+
+    else:
+        error_var_contents.append(variable_name)
+        return False, "", error_var_contents, remaining_check_list

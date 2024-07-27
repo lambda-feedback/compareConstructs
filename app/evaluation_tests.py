@@ -25,44 +25,38 @@ class TestEvaluationFunction(unittest.TestCase):
     def test_general_eval(self):
         response = """
 import numpy as np
-import matplotlib.pyplot as pl
-start = -5
-end = -2
-step = 0.5
+Dx = 0.1
+x = np.arange(-2*np.pi,2*np.pi+Dx,Dx)
+y = np.arange(-np.pi,2*np.pi+Dx,Dx)
+(Xg, Yg) = np.meshgrid(x,y)
 
-num_points = int((end - start) / step) + 1
+# compute f and g
+f_xy = np.sin(Xg)*np.cos(Yg)
+g_xy = np.cos(Xg)*np.sin(Yg)
 
-# Generate the same array using np.linspace
-x1 = np.linspace(start, end, num_points)
-x2 = np.arange(-2+0.05, 3, 0.05)
-x3 = np.arange(3, 5+0.5, 0.5)
-x = np.concatenate((x1, x2, x3))
-f = np.sin(x)
-g = np.sin(x**2+np.pi)
-
+# B2
+# compute s and p
+s = f_xy + g_xy
+p = f_xy * g_xy
 """
 
 
         answer = """
 import numpy as np
-import matplotlib.pyplot as pl
-Dx = 0.5
-x1 = np.arange(-5,-2+Dx,Dx)
-
-Dx = 0.05
-x2 = np.arange(-2+Dx,3,Dx)
-
-Dx = 0.5
-x3 = np.arange(3,5+Dx,Dx)
-
-x = np.hstack((x1,x2,x3))
-
-fx = np.sin(x)
-gx = np.sin(x**2+np.pi)
-pl.scatter(x,fx,c='red',marker='d')
-pl.scatter(x,gx,c='magenta',marker='o')
+Dx = 0.1
+x = np.arange(-2*np.pi,2*np.pi+Dx,Dx)
+y = np.arange(-np.pi,2*np.pi+Dx,Dx)
+(Xg, Yg) = np.meshgrid(x,y)
+print(len(x))
+print(len(y))
+print(np.shape(Xg))
+print(np.shape(Yg))
+f = np.sin(Xg)*np.cos(Yg)
+g = np.cos(Xg)*np.sin(Yg)
+s = f + g
+p = f * g
 """
-        result = evaluation_function(response, answer, Params(check_list="x,fx,gx"))
+        result = evaluation_function(response, answer, Params(check_list="x,y,f,g,s,p"))
         print(result['is_correct'])
         print(result['feedback'])
 

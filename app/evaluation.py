@@ -36,6 +36,7 @@ class Result(TypedDict):
 
 
 def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
+    check_list = params['check_list'].split(',')
     """
     Function used to evaluate a student response.
     ---
@@ -54,7 +55,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     return types and that evaluation_function() is the main function used
     to output the evaluation response.
     """
-    general_feedback, _ = check(response)
+    general_feedback = check(response)
     is_correct_answer, msg = check_syntax(answer)
     if not is_correct_answer:
         return Result(is_correct=False, feedback="Please contact your teacher to give correct answer!")
@@ -66,25 +67,27 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
         return Result(is_correct=False, feedback=error_feedback)
     if msg:
         if not check_answer_with_output(response, msg):
-            error_feedback = "The output is different to given answer: \n"
-            return Result(is_correct=False, feedback=error_feedback)
+            # if check_list != 0, it means that output is not the importance
+            if len(check_list) == 0:
+                error_feedback = "The output is different to given answer: \n"
+                return Result(is_correct=False, feedback=error_feedback)
         else:
             return Result(is_correct=True, feedback=correct_feedback)
     else:
         if check_each_letter(response, answer):
             return Result(is_correct=True, feedback=correct_feedback)
-        is_correct, feedback, remaining_check_list = check_global_variable_content(response, answer, params['check_list'].split(','))
-        if not is_correct:
-            return Result(is_correct=False, feedback=feedback)
-        else:
-            if len(remaining_check_list) == 0:
+    is_correct, feedback, remaining_check_list, response = check_global_variable_content(response, answer, check_list)
+    if not is_correct:
+        return Result(is_correct=False, feedback=feedback)
+    else:
+        if len(remaining_check_list) == 0:
+            return Result(is_correct=True, feedback=correct_feedback)
+        is_correct, feedback = check_local_variable_content(response, answer, remaining_check_list)
+        if is_correct:
+            if feedback != "NotDefined":
                 return Result(is_correct=True, feedback=correct_feedback)
-            is_correct, feedback = check_local_variable_content(response, answer, remaining_check_list)
-            if is_correct:
-                if feedback != "NotDefined":
-                    return Result(is_correct=True, feedback=correct_feedback)
-            else:
-                return Result(is_correct=False, feedback=feedback)
+        else:
+            return Result(is_correct=False, feedback=feedback)
 
     result = ai_feedback(response, answer)
     return Result(is_correct=result['Bool'], feedback=result['Feedback'])
@@ -103,7 +106,7 @@ def check_answer_with_output(response, output_msg):
             res_feedback = res_result.stdout.strip()
     except Exception as e:
         res_feedback = f"Exception occurred: {str(e)}"
-    return res_feedback == output_msg
+    return check_each_letter(res_feedback, output_msg)
 
 
 def check_each_letter(response, answer):
@@ -111,9 +114,8 @@ def check_each_letter(response, answer):
     The function is called iff the answer and the response are unique. i.e. aList = [1,2,3,4,5] is the unique answer and response
     Notice that styles (at least they can pass general check) are NOT sensitive
     """
-    return answer.replace(" ", "").replace("\t", "").replace("\n", "") == response.replace(" ", "").replace("\t",
-                                                                                                            "").replace(
-        "\n", "")
+    return answer.replace(" ", "").replace("\t", "").replace("\n", "").replace("\r", "") == response.replace(
+        " ", "").replace("\t", "").replace("\n", "").replace("\r", "")
 
 
 def ai_feedback(response, answer):

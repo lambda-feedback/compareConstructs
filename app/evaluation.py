@@ -72,7 +72,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
                 error_feedback = "The output is different to given answer: \n"
                 return Result(is_correct=False, feedback=error_feedback)
         else:
-            return Result(is_correct=True, feedback=correct_feedback)
+                     return Result(is_correct=True, feedback=correct_feedback)
     else:
         if check_each_letter(response, answer):
             return Result(is_correct=True, feedback=correct_feedback)

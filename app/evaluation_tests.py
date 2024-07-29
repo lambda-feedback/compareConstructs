@@ -25,39 +25,74 @@ class TestEvaluationFunction(unittest.TestCase):
     def test_general_eval(self):
         response = """
 import numpy as np
-Dx = 0.1
-x = np.arange(-2*np.pi,2*np.pi+Dx,Dx)
-y = np.arange(-np.pi,2*np.pi+Dx,Dx)
-(Xg, Yg) = np.meshgrid(x,y)
 
-# compute f and g
-f_xy = np.sin(Xg)*np.cos(Yg)
-g_xy = np.cos(Xg)*np.sin(Yg)
+def trapzeqd(x,y):
+    # get the interval h: distance between any two consecutives nodes
+    h = x[1] - x[0]
+    # get the number of intervals
+    N = len(x) - 1  # obviously x and y must have same length
+    
+    # compute the integral
+    
+    # compute the sum for the intermediate points
+    S = 0.0
+    for n in range(1,N):
+        S += y[n]  # add the current calue of y
+    # add first and last points: see the formula for trapezoidal method
+    I = h * (y[0]/2 + S + y[-1]/2 )
+    
+    # an alternative approach, with slicing and the function np.sum(), the integral can be computed within one line
+    I = h * (y[0]/2 + np.sum(y[1:-1]) + y[-1]/2 )
+    
+    return I
 
-# B2
-# compute s and p
-s = f_xy + g_xy
-p = f_xy * g_xy
+# make it different
+
+def f(x):
+    y = 1/np.sqrt(x**17.10+2023)
+    #y = 1/np.sqrt(x**1.10+2023)
+    #y = np.sin(x)
+    return y
+
 """
 
 
         answer = """
 import numpy as np
-Dx = 0.1
-x = np.arange(-2*np.pi,2*np.pi+Dx,Dx)
-y = np.arange(-np.pi,2*np.pi+Dx,Dx)
-(Xg, Yg) = np.meshgrid(x,y)
-print(len(x))
-print(len(y))
-print(np.shape(Xg))
-print(np.shape(Yg))
-f = np.sin(Xg)*np.cos(Yg)
-g = np.cos(Xg)*np.sin(Yg)
-s = f + g
-p = f * g
+
+def trapzeqd(x,y):
+    # get the interval h: distance between any two consecutives nodes
+    h = x[1] - x[0]
+    # get the number of intervals
+    N = len(x) - 1  # obviously x and y must have same length
+    
+    # compute the integral
+    
+    # compute the sum for the intermediate points
+    S = 0.0
+    for n in range(1,N):
+        S += y[n]  # add the current calue of y
+    # add first and last points: see the formula for trapezoidal method
+    I = h * (y[0]/2 + S + y[-1]/2 )
+    
+    # an alternative approach, with slicing and the function np.sum(), the integral can be computed within one line
+    I = h * (y[0]/2 + np.sum(y[1:-1]) + y[-1]/2 )
+    
+    return I
+    
+def f(x):
+    y = 1/np.sqrt(x**17.10+2023)
+    #y = 1/np.sqrt(x**1.10+2023)
+    #y = np.sin(x)
+    return y
+    
+
+
 """
-        result = evaluation_function(response, answer, Params(check_list="x,y,f,g,s,p"))
-        print(result['is_correct'])
+        check_list = ""
+        is_correct = True
+        result = evaluation_function(response, answer, Params(check_list=check_list))
+        assert is_correct == result['is_correct']
         print(result['feedback'])
 
 

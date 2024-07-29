@@ -33,6 +33,10 @@ def variable_content(code_str) -> dict:
         exec(code_str, context)
     except NameError:
         return {"err": ""}
+    except SystemExit:
+        pass
+    except Exception:
+        return {"NotDefined": ""}
 
     return {var: context.get(var) for var in variables if not isinstance(context.get(var), types.FunctionType)}
 
@@ -56,12 +60,17 @@ def check_global_variable_content(response, answer, check_list: list, global_res
         return False, "NameError", check_list, response
     if "err" in response_var_dict.keys():
         return False, "NameError", check_list, response
+
+    # params type are not declared and generated variables do not fit the type of the variable
+    if "NotDefined" in answer_var_dict.keys():
+        return True, "NotDefined", check_list, response
+    if "NotDefined" in response_var_dict.keys():
+        return True, "NotDefined", check_list, response
     # check whether they have the same variable names
     answer_var_set = answer_var_dict.keys()
     response_var_set = response_var_dict.keys()
     intersections = response_var_set & answer_var_set
     error_var_contents = []
-    is_correct = True
     is_defined = True
 
     remaining_check_list = copy.deepcopy(check_list)
@@ -80,7 +89,7 @@ def check_global_variable_content(response, answer, check_list: list, global_res
             else:
                 is_defined = False
 
-    if is_correct:
+    if len(error_var_contents) == 0:
         if is_defined:
             return True, "", remaining_check_list, response
         else:
@@ -88,15 +97,14 @@ def check_global_variable_content(response, answer, check_list: list, global_res
     else:
         feedback = ""
         if 0 < len(error_var_contents) < 2:
-            feedback += f"""The value of '{"', '".join(error_var_contents)}' is not correct\n"""
+            feedback += f"""The value of '{"', '".join(error_var_contents)}' is not correct respect to the answer\n"""
         elif len(error_var_contents) >= 2:
-            feedback += f"""The values of '{"', '".join(error_var_contents)}' are not correct\n"""
+            feedback += f"""The values of '{"', '".join(error_var_contents)}' are not correct respect to the answer\n"""
         return False, feedback, remaining_check_list, response
 
 
 def is_equal(variable_name, response_variable_content, answer_variable_content, error_var_contents,
              remaining_check_list):
-    is_correct = True
     if type(response_variable_content) != type(answer_variable_content):
         return False, f"The type of '{variable_name}' is not correct. Expected: {type(answer_variable_content).__name__}", \
             error_var_contents, remaining_check_list
@@ -114,10 +122,23 @@ def is_equal(variable_name, response_variable_content, answer_variable_content, 
         except Exception as e:
             return False, f"{type(e).__name__} of '{variable_name}': {e}", error_var_contents, remaining_check_list
 
+
     if is_correct:
         remaining_check_list.pop()
         return True, "", error_var_contents, remaining_check_list
 
     else:
+        # the error message will be checked later
         error_var_contents.append(variable_name)
-        return False, "", error_var_contents, remaining_check_list
+        return True, "", error_var_contents, remaining_check_list
+
+
+if __name__ == '__main__':
+    str = """
+import sys
+
+a = 5
+b = 10
+sys.exit()
+    """
+    print(variable_content(str))

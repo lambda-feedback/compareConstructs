@@ -17,8 +17,7 @@ COPY preview.py ./app/
 COPY preview_tests.py ./app/
 COPY dynamic_import.py ./app/
 COPY aifeedback.py ./app/
-COPY output_traceback.py ./app/
-
+COPY param_generator.py ./app/
 COPY general_check.py ./app/
 COPY structure_check.py ./app/
 COPY global_variable_check.py ./app/

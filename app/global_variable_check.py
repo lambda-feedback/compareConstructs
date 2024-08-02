@@ -38,23 +38,21 @@ def variable_content(code_str) -> dict:
     except Exception:
         return {"NotDefined": ""}
 
-    return {var: context.get(var) for var in variables if not isinstance(context.get(var), types.FunctionType)}
+    return {var: context.get(var) for var in variables if
+            not isinstance(context.get(var), types.FunctionType) and context.get(var) is not None}
 
 
-def check_global_variable_content(response, answer, check_list: list, global_response_variable_content="",
-                                  global_answer_variable_content=""):
+def check_global_variable_content(response, answer, check_list: list):
     """
     Teacher should give a variable check-list for us due to the importance of the variables relying on the Teacher's goal
     """
-    response = f"{global_response_variable_content}\n{response}"
 
-    answer = f"{global_answer_variable_content}\n{answer}"
     response_var_dict = variable_content(response)
     answer_var_dict = variable_content(answer)
 
     # sometimes students give us different variable names, but we could figure the difference
-    response, response_var_dict = check_same_content_with_different_variable(response, check_list, response_var_dict,
-                                                                             answer_var_dict)
+    response, response_var_dict = check_same_content_with_different_variable(response, response_var_dict,
+                                                                             answer_var_dict, check_list)
     # sometimes local variables are defined in the outer scope
     if "err" in answer_var_dict.keys():
         return False, "NameError", check_list, response
@@ -89,6 +87,21 @@ def check_global_variable_content(response, answer, check_list: list, global_res
             else:
                 is_defined = False
 
+    if "TMP" in remaining_check_list:
+        remaining_check_list.remove("TMP")
+        if len(remaining_check_list) == 0:
+            return True, "", remaining_check_list, response
+        if "TMP" in error_var_contents:
+            error_var_contents.remove("TMP")
+            return False, "The return value is not the same as the given answer", remaining_check_list, response
+        if "TMP" in intersections:
+            return True, "", remaining_check_list, response
+        else:
+            if "TMP" in answer_var_set:
+                return False, "The return statement is lacking", remaining_check_list, response
+            elif "TMP" in response_var_set:
+                return False, "The return statement is redundant", remaining_check_list, response
+
     if len(error_var_contents) == 0:
         if is_defined:
             return True, "", remaining_check_list, response
@@ -122,23 +135,11 @@ def is_equal(variable_name, response_variable_content, answer_variable_content, 
         except Exception as e:
             return False, f"{type(e).__name__} of '{variable_name}': {e}", error_var_contents, remaining_check_list
 
-
     if is_correct:
-        remaining_check_list.pop()
+        remaining_check_list.remove(variable_name)
         return True, "", error_var_contents, remaining_check_list
 
     else:
         # the error message will be checked later
         error_var_contents.append(variable_name)
         return True, "", error_var_contents, remaining_check_list
-
-
-if __name__ == '__main__':
-    str = """
-import sys
-
-a = 5
-b = 10
-sys.exit()
-    """
-    print(variable_content(str))

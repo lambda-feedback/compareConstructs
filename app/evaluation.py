@@ -36,35 +36,20 @@ class Result(TypedDict):
 
 
 def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
-    check_list = params['check_list'].split(',')
-    """
-    Function used to evaluate a student response.
-    ---
-    The handler function passes three arguments to evaluation_function():
-    - `response` which are the answers provided by the student.
-    - `answer` which are the correct answers to compare against.
-    - `params` which are any extra parameters that may be useful,
-        e.g., error tolerances.
-    The output of this function is what is returned as the API response
-    and therefore must be JSON-encodable. It must also conform to the
-    response schema.
-    Any standard python library may be used, as well as any package
-    available on pip (provided it is added to requirements.txt).
-    The way you wish to structure you code (all in this function, or
-    split into many) is entirely up to you. All that matters are the
-    return types and that evaluation_function() is the main function used
-    to output the evaluation response.
-    """
+    check_list = [var.strip() for var in params['check_list'].split(',') if len(var.strip()) > 0]
+    correct_feedback = random.choice(["Good Job!", "Well Done!", "Awesome"])
     general_feedback = check(response)
-    is_correct_answer, msg = check_syntax(answer)
+    syntax = check_syntax(answer)
+    is_correct_answer, msg = syntax
+
     if not is_correct_answer:
         return Result(is_correct=False, feedback="Please contact your teacher to give correct answer!")
     if general_feedback != "General check passed!":
         return Result(is_correct=False, feedback=general_feedback)
-    correct_feedback = random.choice(["Good Job!", "Well Done!"])
-    error_feedback = no_ai_feedback(response, answer)
-    if error_feedback:
-        return Result(is_correct=False, feedback=error_feedback)
+    if not check_structure(response, answer):
+        return Result(is_correct=False, feedback="The methods or classes are not correctly defined.\n")
+
+
     if msg:
         if not check_answer_with_output(response, msg):
             # if check_list != 0, it means that output is not the importance
@@ -72,7 +57,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
                 error_feedback = "The output is different to given answer: \n"
                 return Result(is_correct=False, feedback=error_feedback)
         else:
-                     return Result(is_correct=True, feedback=correct_feedback)
+            return Result(is_correct=True, feedback=correct_feedback)
     else:
         if check_each_letter(response, answer):
             return Result(is_correct=True, feedback=correct_feedback)
@@ -126,14 +111,6 @@ def ai_feedback(response, answer):
     reply = ai_check(response, answer)
     result = ai_content_format(reply)
     return result
-
-
-def no_ai_feedback(response, answer):
-    feedback = ""
-    if not check_structure(response, answer):
-        feedback = "The methods or classes are not correctly defined.\n"
-    # TODO implement other check functionalities
-    return feedback
 
 
 if __name__ == '__main__':

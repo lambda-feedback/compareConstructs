@@ -91,7 +91,7 @@ def response_format(code_string):
     return [re.sub(r'\n\s*\n+', '\n', code_line) for code_line in code_lines]
 
 
-def local_missing_modules_and_variables_format(modules, var_dict, arg_list):
+def local_missing_modules_and_variables_format(modules, var_dict):
     import_statements = []
     for var_name, module_name in modules:
         if var_name == module_name:
@@ -101,5 +101,4 @@ def local_missing_modules_and_variables_format(modules, var_dict, arg_list):
 
     import_msg = '\n'.join(import_statements)
     variable_msg = "\n".join([f"{key}={value}" for key, value in var_dict.items() if value is not None])
-    arg_msg = "\n".join(f"{arg}=None" for arg in arg_list)
-    return f"{import_msg}\n{variable_msg}\n{arg_msg}"
+    return f"{import_msg}\n{variable_msg}"

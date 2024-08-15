@@ -21,6 +21,7 @@ COPY structure_check.py ./app/
 COPY global_variable_check.py ./app/
 COPY local_variable_check.py ./app/
 COPY same_variable_content_check.py ./app/
+COPY compare.py ./app/
 # Copy Documentation
 COPY docs/dev.md ./app/docs/dev.md
 COPY docs/user.md ./app/docs/user.md

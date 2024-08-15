@@ -1,8 +1,6 @@
 try:
-    from .dynamic_import import module_import
     from .format import message_format, response_format
 except ImportError:
-    from dynamic_import import module_import
     from format import message_format, response_format
 import subprocess
 

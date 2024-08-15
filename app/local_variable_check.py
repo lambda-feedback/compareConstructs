@@ -175,6 +175,8 @@ def check_local_variable_content(response, answer, check_list: list):
             response_body = f"{global_response_variable_content}\n{response_body}"
             answer_body = f"{global_answer_variable_content}\n{answer_body}"
 
+            remaining_check_list.append("TMP")
+
             response_var_dict.update(variable_content(response_body))
             answer_var_dict.update(variable_content(answer_body))
             is_correct, feedback, remaining_check_list, response_body = check_global_variable_content(response_body,
@@ -187,6 +189,9 @@ def check_local_variable_content(response, answer, check_list: list):
                 return True, feedback
             if not is_correct:
                 return False, feedback
+            else:
+                if method_name in remaining_check_list:
+                    remaining_check_list.remove(method_name)
 
     if len(remaining_check_list) == 0:
         return (True, "") if feedback != "NotDefined" else (True, feedback)

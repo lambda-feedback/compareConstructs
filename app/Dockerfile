@@ -15,7 +15,6 @@ COPY format.py ./app/
 COPY dynamic_import.py ./app/
 COPY preview.py ./app/
 COPY preview_tests.py ./app/
-COPY dynamic_import.py ./app/
 COPY aifeedback.py ./app/
 COPY param_generator.py ./app/
 COPY general_check.py ./app/

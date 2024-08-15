@@ -3,6 +3,8 @@ import builtins
 import types
 import copy
 import numpy as np
+import io
+import contextlib
 
 try:
     from .same_variable_content_check import check_same_content_with_different_variable
@@ -10,11 +12,17 @@ except ImportError:
     from same_variable_content_check import check_same_content_with_different_variable
 
 tolerance = 1e-8
+GLOBAL_ERR_VAR_CONTENT = []
 
 
 class VariableVisitor(ast.NodeVisitor):
     def __init__(self):
         self.variables = set()
+
+    def visit_FunctionDef(self, node):
+        # Skip the function name and only visit the body
+        for stmt in node.body:
+            self.visit(stmt)
 
     def visit_Name(self, node):
         if node.id not in dir(builtins):
@@ -30,7 +38,9 @@ def variable_content(code_str) -> dict:
     variables = visitor.variables
     context = {}
     try:
-        exec(code_str, context)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            exec(code_str, context)
     except NameError:
         return {"err": ""}
     except SystemExit:
@@ -46,6 +56,8 @@ def check_global_variable_content(response, answer, check_list: list):
     """
     Teacher should give a variable check-list for us due to the importance of the variables relying on the Teacher's goal
     """
+
+    global GLOBAL_ERR_VAR_CONTENT
 
     response_var_dict = variable_content(response)
     answer_var_dict = variable_content(answer)
@@ -83,6 +95,7 @@ def check_global_variable_content(response, answer, check_list: list):
                     remaining_check_list
                 )
                 if not is_correct:
+                    GLOBAL_ERR_VAR_CONTENT = error_var_contents
                     return False, msg, remaining_check_list, response
             else:
                 is_defined = False
@@ -113,12 +126,20 @@ def check_global_variable_content(response, answer, check_list: list):
             feedback += f"""The value of '{"', '".join(error_var_contents)}' is not correct respect to the answer\n"""
         elif len(error_var_contents) >= 2:
             feedback += f"""The values of '{"', '".join(error_var_contents)}' are not correct respect to the answer\n"""
+
+        GLOBAL_ERR_VAR_CONTENT = error_var_contents
         return False, feedback, remaining_check_list, response
+
+
+def get_err_vars():
+    return GLOBAL_ERR_VAR_CONTENT
 
 
 def is_equal(variable_name, response_variable_content, answer_variable_content, error_var_contents,
              remaining_check_list):
+    # TODO: add other equivalent relation: Notice that the return type contains: (is_correct, feedback, error_var, remaining_check_list)
     if type(response_variable_content) != type(answer_variable_content):
+        error_var_contents.append(variable_name)
         return False, f"The type of '{variable_name}' is not correct. Expected: {type(answer_variable_content).__name__}", \
             error_var_contents, remaining_check_list
 

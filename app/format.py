@@ -8,6 +8,7 @@ no_message_errors = ["MemoryError"]
 
 
 def message_format(message):
+    # TODO: check other possible error types
     message_lines = message.splitlines()
     error_msg = message_lines[-1]
     error_type = error_msg.split(":")[0]

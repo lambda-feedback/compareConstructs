@@ -89,6 +89,7 @@ def param_generator(params, body):
 
 
 def type_generator(possible_type):
+    # TODO: other types should be included
     length = random.randint(1, 10)
 
     def string_generator():

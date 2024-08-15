@@ -12,7 +12,6 @@ RUN pip3 install -r requirements.txt
 COPY evaluation.py ./app/
 COPY evaluation_tests.py ./app/
 COPY format.py ./app/
-COPY dynamic_import.py ./app/
 COPY preview.py ./app/
 COPY preview_tests.py ./app/
 COPY aifeedback.py ./app/

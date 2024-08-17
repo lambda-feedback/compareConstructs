@@ -1,7 +1,6 @@
 """
 The script is used only the Teacher forgets to input the check_list, or lacking of global variables
 """
-import re
 import ast
 import sys
 import types

@@ -1,7 +1,4 @@
-try:
-    from .format import message_format, response_format
-except ImportError:
-    from format import message_format, response_format
+from .format import message_format, response_format
 import subprocess
 
 

@@ -1,28 +1,15 @@
 import random
 from typing import Any, TypedDict
 
-from app.compare import variables_content_compare
+from .compare import variables_content_compare
 
-try:
-    from .global_variable_check import check_global_variable_content, get_err_vars, variable_content
-    from .local_variable_check import check_local_variable_content, extract_modules
-    from .general_check import check, check_syntax
-    from .structure_check import check_structure
-except ImportError:
-    from general_check import check, check_syntax
-    from structure_check import check_structure
-    from global_variable_check import check_global_variable_content
-    from local_variable_check import check_local_variable_content
-import os
+from .format import ai_content_format
+from .aifeedback import ai_check
+from .global_variable_check import check_global_variable_content, get_err_vars, variable_content
+from .local_variable_check import check_local_variable_content, extract_modules
+from .general_check import check, check_syntax
+from .structure_check import check_structure
 import subprocess
-
-try:
-    from .format import message_format, ai_content_format
-    from .aifeedback import ai_check
-except ImportError:
-    # run it on the local machine
-    from format import message_format
-    from aifeedback import ai_check
 
 
 class Params(TypedDict):

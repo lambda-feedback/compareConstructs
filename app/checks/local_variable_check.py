@@ -10,7 +10,7 @@ import astor
 
 from .global_variable_check import variable_content, check_global_variable_content
 from ..format.general_format import local_missing_modules_and_variables_format
-from ..utils.param_generator import param_generator, guess_param_type
+from ..utils.param_utils import param_generator, guess_param_type
 from .same_variable_content_check import check_same_content_with_different_variable
 
 

@@ -10,9 +10,9 @@ RUN pip3 install -r requirements.txt
 
 
 
-COPY utils/param_generator.py ./app/utils/
+COPY utils/param_utils.py ./app/utils/
 
-COPY format/compare.py ./app/format/
+COPY format/variable_compare_format.py ./app/format/
 COPY format/general_format.py ./app/format/
 
 COPY evaluation.py ./app/
@@ -23,7 +23,7 @@ COPY checks/global_variable_check.py ./app/checks/
 COPY checks/local_variable_check.py ./app/checks/
 COPY checks/structure_check.py ./app/checks/
 COPY checks/same_variable_content_check.py ./app/checks/
-COPY checks/aifeedback.py ./app/checks/
+COPY checks/ai_prompt_check.py ./app/checks/
 
 COPY preview.py ./app/
 COPY preview_tests.py ./app/

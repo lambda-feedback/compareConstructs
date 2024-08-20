@@ -7,14 +7,12 @@ import types
 import itertools
 import astor
 
-try:
-    from .global_variable_check import variable_content, check_global_variable_content
-    from .format import local_missing_modules_and_variables_format
-    from .param_generator import param_generator, guess_param_type
-    from .same_variable_content_check import check_same_content_with_different_variable
-except:
-    from global_variable_check import variable_content, check_global_variable_content
-    from format import local_missing_modules_and_variables_format
+
+from ..checks.global_variable_check import variable_content, check_global_variable_content
+from ..format.general_format import local_missing_modules_and_variables_format
+from ..utils.param_utils import param_generator, guess_param_type
+from ..checks.same_variable_content_check import check_same_content_with_different_variable
+
 
 
 class MethodParamBodyExtractor(ast.NodeVisitor):

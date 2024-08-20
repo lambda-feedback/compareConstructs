@@ -7,7 +7,7 @@ import io
 import contextlib
 
 try:
-    from .same_variable_content_check import check_same_content_with_different_variable
+    from app.checks.same_variable_content_check import check_same_content_with_different_variable
 except ImportError:
     from same_variable_content_check import check_same_content_with_different_variable
 

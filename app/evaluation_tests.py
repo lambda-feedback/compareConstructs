@@ -21,19 +21,52 @@ class TestEvaluationFunction(unittest.TestCase):
     Use evaluation_function() to check your algorithm works
     as it should.
     """
-
-    def test_general_eval(self):
-        response = """
-a=2
-"""
-        answer = """
-a=3
-"""
-        check_list = "a"
-        is_correct = False
-        result = evaluation_function(response, answer, Params(check_list=check_list))
-        print(result['is_correct'])
-        print(result['feedback'])
+    
+    def test_structure_check(self):
+        from .checks.structure_check import check_structure
+        # Verify that structures with the same parent names are not 
+        # marked as correct (this would have returned true before)
+        self.assertFalse(check_structure("""
+def hello():
+    def foo():
+        pass
+    def hello():
+        def bar():
+            pass
+""", """
+class hello:
+    def foo():
+        pass
+    
+    def bar():
+        pass
+    
+    def hello():
+        pass
+"""))
+        # Code with the same structure but different function/class
+        # names should still be accepted.
+        self.assertTrue(check_structure("""
+class hello:
+    def foo():
+        pass
+    
+    def bar():
+        pass
+    
+    def hello():
+        pass
+""", """
+class lorem:
+    def ipsum():
+        pass
+    
+    def dolor():
+        pass
+    
+    def sit():
+        pass
+"""))
 
 
 if __name__ == "__main__":

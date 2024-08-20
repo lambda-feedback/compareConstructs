@@ -15,6 +15,7 @@ import subprocess
 class Params(TypedDict):
     # TODO it will be list after the website updates
     check_list: Any
+    check_names: bool
 
 
 class Result(TypedDict):
@@ -37,7 +38,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
         return Result(is_correct=False, feedback="Please contact your teacher to give correct answer!")
     if general_feedback != "General check passed!":
         return Result(is_correct=False, feedback=general_feedback)
-    if not check_structure(response, answer):
+    if not check_structure(response, answer, check_names=params.get('check_names', False)):
         return Result(is_correct=False, feedback="The methods or classes are not correctly defined.")
 
     if msg:

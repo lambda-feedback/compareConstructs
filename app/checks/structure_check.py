@@ -68,26 +68,21 @@ def check_structure(response, answer):
 
 if __name__ == '__main__':
     response = """
-def hello():
-    def foo():
-        pass
-    def hello():
-        def bar():
-            pass
-    
+def hi():
+    return "hi"
+
+def f(x, y):
+    return x ** 2 + y ** 3
 """
 
     answer = """
-class hello:
-    def foo():
-        pass
-    
-    def bar():
-        pass
-    
-    def hello():
-        pass
-"""
+def hi():
+    return "hillo"[0:2]
+
+def f(x, y):
+    return x * x + y ** 3
+
+    """
     print(NodeType.CLASS)
     print(split_structure(response))
     print(split_structure(answer))

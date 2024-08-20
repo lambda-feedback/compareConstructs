@@ -21,6 +21,28 @@ class TestEvaluationFunction(unittest.TestCase):
     Use evaluation_function() to check your algorithm works
     as it should.
     """
+    def test_eval(self):
+        response = """
+def hi():
+    return "hi"
+
+def f(x, y):
+    return x ** 2 + y ** 3
+        """
+
+        answer = """
+def hi():
+    return "hillo"[0:2]
+
+def f(x, y):
+    return x * x + y ** 3
+
+            """
+        check_list = ['f', 'hi']
+
+        result = evaluation_function(response, answer, Params(check_list=check_list))
+        print(result['is_correct'])
+        print(result['feedback'])
     
     def test_structure_check(self):
         from .checks.structure_check import check_structure

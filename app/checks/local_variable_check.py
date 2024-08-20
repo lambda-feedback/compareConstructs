@@ -176,6 +176,8 @@ def check_local_variable_content(response, answer, check_list: list):
 
             response_var_dict.update(variable_content(response_body))
             answer_var_dict.update(variable_content(answer_body))
+            response_var_dict.pop('TMP', 'NA')
+            answer_var_dict.pop('TMP', 'NA')
             is_correct, feedback, remaining_check_list, response_body = check_global_variable_content(response_body,
                                                                                                       answer_body,
                                                                                                       remaining_check_list)

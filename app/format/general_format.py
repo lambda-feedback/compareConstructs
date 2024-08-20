@@ -41,8 +41,8 @@ def no_message_error_format(error_type, message_lines):
 def syntax_error_format(error_type, message_lines):
     line_location = message_lines[0].split(",")[1].lstrip()
     code_location = message_lines[1:-1]
-    syntax_detail = '<br>'.join(code_location)
-    return f"{error_type}: at {line_location},<br>{syntax_detail}"
+    syntax_detail = '\n'.join(code_location)
+    return f"{error_type}: at {line_location},\n{syntax_detail}"
 
 
 def key_error_format(message_lines):
@@ -103,3 +103,10 @@ def local_missing_modules_and_variables_format(modules, var_dict):
     import_msg = '\n'.join(import_statements)
     variable_msg = "\n".join([f"{key}={value}" for key, value in var_dict.items() if value is not None])
     return f"{import_msg}\n{variable_msg}"
+
+
+def markdown_format(message):
+
+    return message.replace("\n", "<br>")
+
+

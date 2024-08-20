@@ -14,6 +14,7 @@ COPY utils/param_utils.py ./app/utils/
 
 COPY format/variable_compare_format.py ./app/format/
 COPY format/general_format.py ./app/format/
+COPY format/output_traceback_format.py ./app/format/
 
 COPY evaluation.py ./app/
 COPY evaluation_tests.py ./app/

@@ -42,7 +42,7 @@ def check(code_string):
     # module_import(formatted_code_lines)
     is_syntax_correct, msg = check_syntax(code_string)
     if not is_syntax_correct:
-        return f"Error occurs, please check the details below: <br>{message_format(msg)}"
+        return f"Error occurs, please check the details below: \n{message_format(msg)}"
 
     return "General check passed!"
 

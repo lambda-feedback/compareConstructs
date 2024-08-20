@@ -24,28 +24,12 @@ class TestEvaluationFunction(unittest.TestCase):
 
     def test_general_eval(self):
         response = """
-N = 25
-sum = 0
-for i in range(1,26):
-    # add the current term to the total sum
-    sum = sum + i**2
-# print out the result
-print(sum)
+a=2
 """
         answer = """
-# A1
-# input N
-N = 25
-# initialise the sum
-sum = 0
-# set the range of n in the sum
-for i in range(1,N+1):
-    # add the current term to the total sum
-    sum = sum + i**2
-# print out the result
-print(sum)
+a=3
 """
-        check_list = ""
+        check_list = "a"
         is_correct = False
         result = evaluation_function(response, answer, Params(check_list=check_list))
         print(result['is_correct'])

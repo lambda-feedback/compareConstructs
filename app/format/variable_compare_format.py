@@ -90,9 +90,3 @@ def get_ndarray_difference(res_ndarray, ans_ndarray):
     if indices is not None:
         return result[0], indices[0]
     return None, None
-
-
-if __name__ == '__main__':
-    alist = np.array([[1, 2, 2, 232323223, 232323223], [323, 42, 424, 232323223, 232323223]])
-    rlist = np.array([[1, 2, 3, 232323223, 232323223], [323, 42, 421, 232323223, 232323223]])
-    print(variable_content_compare('x', rlist, alist))

@@ -1,7 +1,7 @@
 import random
 from typing import Any, TypedDict
-from .compare import variables_content_compare
-from .format import ai_content_format
+from .format.compare import variables_content_compare
+from .format.general_format import ai_content_format
 from .aifeedback import ai_check
 from .global_variable_check import check_global_variable_content, get_err_vars, variable_content
 from .local_variable_check import check_local_variable_content, extract_modules

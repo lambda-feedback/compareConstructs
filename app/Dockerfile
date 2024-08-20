@@ -9,16 +9,21 @@ COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
 COPY aifeedback.py ./app/
-COPY compare.py ./app/
+
+COPY utils/param_generator.py ./app/utils/
+
+COPY format/compare.py ./app/format/
+COPY format/general_format.py ./app/format/
+
 COPY evaluation.py ./app/
 COPY evaluation_tests.py ./app/
-COPY format.py ./app/
+
 COPY general_check.py ./app/
 COPY global_variable_check.py ./app/
 COPY local_variable_check.py ./app/
 COPY preview.py ./app/
 COPY preview_tests.py ./app/
-COPY utils/param_generator.py ./app/utils/
+
 COPY structure_check.py ./app/
 COPY same_variable_content_check.py ./app/
 

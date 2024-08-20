@@ -8,22 +8,19 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
+COPY aifeedback.py ./app/
+COPY compare.py ./app/
 COPY evaluation.py ./app/
 COPY evaluation_tests.py ./app/
+COPY format.py ./app/
+COPY general_check.py ./app/
+COPY global_variable_check.py ./app/
+COPY local_variable_check.py ./app/
 COPY preview.py ./app/
 COPY preview_tests.py ./app/
-
-COPY checks/ai_check.py ./app/checks/
-COPY checks/general_check.py ./app/checks/
-COPY checks/global_variable_check.py ./app/checks/
-COPY checks/local_variable_check.py ./app/checks/
-COPY checks/same_variable_content_check.py ./app/checks/
-COPY checks/structure_check.py ./app/checks/
-
-COPY format/compare_format.py ./app/format/
-COPY format/general_format.py ./app/format/
-
-COPY utils/param_utils.py ./app/utils/
+COPY utils/param_generator.py ./app/utils/
+COPY structure_check.py ./app/
+COPY same_variable_content_check.py ./app/
 
 # Copy Documentation
 COPY docs/dev.md ./app/docs/dev.md

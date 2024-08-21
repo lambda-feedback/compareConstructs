@@ -118,7 +118,28 @@ class lorem:
     def sit():
         pass
 """), check_names=True).passed())
-        
+    
+    def test_syntax_check(self):
+        from .checks.general_check import check_style
+
+        # This sample is correct, so it should pass the check
+        self.assertTrue(check_style("print('Hello, World!')").passed())
+        # This sample has a missing quote, so it should fail
+        check_result = check_style("print('Hello, World!)")
+        self.assertFalse(check_result.passed())
+        self.assertTrue(len(check_result.message()) != 0)
+    
+    def test_answer_validate(self):
+        from .checks.general_check import validate_answer
+
+        # This sample is correct, so it should pass the check
+        validate_result = validate_answer("print('Hello, World!')")
+        self.assertTrue(validate_result.passed())
+        self.assertEqual(validate_result.get_payload("correct_output"), "Hello, World!\n")
+        # This sample's syntax is correct, but it will cause a runtime error
+        self.assertFalse(validate_answer("foo('Hello, World!')").passed())
+        # This sample's syntax is incorrect
+        self.assertFalse(validate_answer("print('Hello, World!)").passed())
 
 
 if __name__ == "__main__":

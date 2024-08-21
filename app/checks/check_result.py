@@ -1,11 +1,11 @@
 class CheckResult:
     def __init__(self, success: bool) -> None:
         self.success = success
-        self.message = ""
+        self._message = ""
         self.payloads = {}
 
     def add_message(self, message: str):
-        self.message = message
+        self._message = message
         return self
     
     def add_payload(self, name: str, payload: any):
@@ -15,11 +15,11 @@ class CheckResult:
     def passed(self) -> bool:
         return self.success
     
-    def get_payload(self, name: str, default: any) -> any:
+    def get_payload(self, name: str, default: any = None) -> any:
         return self.payloads.get(name, default)
 
     def message(self) -> str:
-        return self.message
+        return self._message
     
     def combine(self, other):
         self.payloads.update(other.payloads)

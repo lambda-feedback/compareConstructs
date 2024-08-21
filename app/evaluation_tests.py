@@ -41,21 +41,21 @@ def f(x, y):
         check_list = ['f', 'hi']
 
         result = evaluation_function(response, answer, Params(check_list=check_list))
-        print(result['is_correct'])
-        print(result['feedback'])
+        self.assertTrue(result['is_correct'])
     
     def test_structure_check(self):
         from .checks.structure_check import check_structure
+        import ast
         # Verify that structures with the same parent names are not 
         # marked as correct (this would have returned true before)
-        self.assertFalse(check_structure("""
+        self.assertFalse(check_structure(ast.parse("""
 def hello():
     def foo():
         pass
     def hello():
         def bar():
             pass
-""", """
+"""), ast.parse("""
 class hello:
     def foo():
         pass
@@ -65,10 +65,10 @@ class hello:
     
     def hello():
         pass
-"""))
+""")).passed())
         # Code with the same structure but different function/class
         # names should still be accepted.
-        self.assertTrue(check_structure("""
+        self.assertTrue(check_structure(ast.parse("""
 class hello:
     def foo():
         pass
@@ -78,7 +78,7 @@ class hello:
     
     def hello():
         pass
-""", """
+"""), ast.parse("""
 class lorem:
     def ipsum():
         pass
@@ -88,15 +88,16 @@ class lorem:
     
     def sit():
         pass
-"""))
+""")).passed())
         
     def test_structure_check_names(self):
         from .checks.structure_check import check_structure
+        import ast
         # These samples have the same structure but different names.
         # check_structure should mark them as different when 
         # check_names is True
 
-        self.assertFalse(check_structure("""
+        self.assertFalse(check_structure(ast.parse("""
 class hello:
     def foo():
         pass
@@ -106,7 +107,7 @@ class hello:
     
     def hello():
         pass
-""", """
+"""), ast.parse("""
 class lorem:
     def ipsum():
         pass
@@ -116,7 +117,7 @@ class lorem:
     
     def sit():
         pass
-""", check_names=True))
+"""), check_names=True).passed())
         
 
 

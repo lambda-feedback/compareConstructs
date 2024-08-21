@@ -1,6 +1,8 @@
 from ..format.general_format import message_format, response_format
-import subprocess
+from .check_result import CheckResult
 
+import subprocess
+import ast
 
 def check_indents(formatted_code_lines) -> bool:
     """
@@ -33,21 +35,53 @@ def check_indents(formatted_code_lines) -> bool:
 
     return all(indent_level % indent_difference == 0 for indent_level in indent_levels)
 
+def format_syntax_error(e: SyntaxError) -> str:
+    caret = "".join(' ' for _ in range(e.offset - 1)) + '^'
+    return f"{e.msg}\n{e.text.rstrip()}\n{caret}"
 
-def check(code_string):
+def check_style(code_string) -> CheckResult:
     formatted_code_lines = response_format(code_string)
     if not check_indents(formatted_code_lines):
-        return f"Indent error, the indent should only be multiple of 2 or 4"
-    # import necessary modules dynamically (not in use)
-    # module_import(formatted_code_lines)
-    is_syntax_correct, msg = check_syntax(code_string)
-    if not is_syntax_correct:
-        return f"Error occurs, please check the details below: \n{message_format(msg)}"
+        return (
+            CheckResult(False)
+                .add_message(f"Indent error, the indent should only be multiple of 2 or 4")
+            )
+    
+    # Attempt to parse the code into an AST. If it is not syntactically correct,
+    # this will fail.
+    try:
+        tree = ast.parse(code_string)
+        return (
+            CheckResult(True)
+                .add_payload("ast", tree)
+        )
+    except SyntaxError as e:
+        return (
+            CheckResult(False)
+                .add_message(format_syntax_error(e))
+        )
+    except:
+        return (
+            CheckResult(False)
+                .add_message(f"Exception raised when parsing response")
+        )
 
-    return "General check passed!"
 
+def validate_answer(code_string: str) -> CheckResult:
+    answer_ast = None
+    try:
+        answer_ast = ast.parse(code_string)
+    except SyntaxError as e:
+        return (
+            CheckResult(False)
+                .add_message(format_syntax_error(e))
+        )
+    except:
+        return (
+            CheckResult(False)
+                .add_message(f"Exception raised when parsing answer")
+        )
 
-def check_syntax(code_string) -> tuple[bool, str]:
     try:
         result = subprocess.run(['python', '-c', code_string], capture_output=True)
         if result.returncode != 0:
@@ -55,8 +89,12 @@ def check_syntax(code_string) -> tuple[bool, str]:
                 stderr = result.stderr.decode('utf-8')
             except UnicodeDecodeError:
                 stderr = result.stderr.decode('utf-8', errors='replace')
-            return False, stderr
+            return CheckResult(False).add_message(stderr)
         else:
-            return True, result.stdout.decode('utf-8')
+            return (
+                CheckResult(True)
+                    .add_payload("correct_output", result.stdout.decode('utf-8'))
+                    .add_payload("ast", answer_ast)
+            )
     except Exception:
-        return False, "Exception occurs during execution"
+        return CheckResult(False).add_message("An exception occurred during answer execution")

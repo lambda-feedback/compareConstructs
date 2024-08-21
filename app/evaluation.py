@@ -7,7 +7,7 @@ from .format.general_format import ai_content_format, markdown_format
 from .checks.ai_prompt_check import ai_check
 from .checks.global_variable_check import check_global_variable_content, get_err_vars, variable_content
 from .checks.local_variable_check import check_local_variable_content, extract_modules
-from .checks.general_check import check, check_syntax
+from .checks.general_check import check_style, validate_answer
 from .checks.structure_check import check_structure
 import subprocess
 
@@ -24,24 +24,41 @@ class Result(TypedDict):
 
 
 def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
-    check_list = params['check_list']
+    check_list = params.get('check_list', [])
     if isinstance(check_list, str):
         check_list = [var.strip() for var in check_list.split(',') if len(var.strip()) > 0]
         
     check_list_defined = len(check_list) != 0
     
     correct_feedback = random.choice(["Good Job!", "Well Done!", "Awesome"])
-    general_feedback = check(response)
 
-    answer_correct, correct_output = check_syntax(answer)
-    if not answer_correct:
-        return Result(is_correct=False, feedback="Please contact your teacher to give correct answer!")
+    # Ensure that the answer is valid
+    # The result includes the answer's stdout as a payload, and its parsed AST
+    answer_feedback = validate_answer(answer)
+    if not answer_feedback.passed():
+        return Result(is_correct=False, feedback=answer_feedback.message())
+    answer_ast = answer_feedback.get_payload("ast", None)
+    correct_output = answer_feedback.get_payload("correct_output", None)
+
+    # Check the student response's code style, and return an incorrect response if 
+    # any egregious mistakes were made.
+    # The result returned includes the AST as a payload, so it can be reused later.
+    general_feedback = check_style(response)
+    if not general_feedback.passed():
+        return Result(is_correct=False, feedback=general_feedback.message())
+    response_ast = general_feedback.get_payload("ast", None)
     
-    if general_feedback != "General check passed!":
-        return Result(is_correct=False, feedback=general_feedback)
-    if not check_structure(response, answer, check_names=params.get('check_names', False)):
-        return Result(is_correct=False, feedback="The methods or classes are not correctly defined.")
+    # Analyse the structure of the response, and ensure that it has the same function/class
+    # heirarchy as the correct answer.
+    structure_feedback = check_structure(
+        response_ast,
+        answer_ast,
+        check_names=params.get('check_names', False)
+    )
+    if not structure_feedback.passed():
+        return Result(is_correct=False, feedback=structure_feedback.message())
 
+    # Did the answer print anything to stdout?
     if correct_output:
         is_correct, res_msg = check_answer_with_output(response, correct_output)
         if not is_correct and not check_list_defined:

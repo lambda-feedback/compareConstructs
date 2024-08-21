@@ -27,7 +27,7 @@ def hi():
     return "hi"
 
 def f(x, y):
-    return x ** 2 + y ** 3
+    return x ** 2 + y **  3
         """
 
         answer = """

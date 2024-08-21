@@ -47,7 +47,7 @@ def check(code_string):
     return "General check passed!"
 
 
-def check_syntax(code_string) -> (bool, str):
+def check_syntax(code_string) -> tuple[bool, str]:
     try:
         result = subprocess.run(['python', '-c', code_string], capture_output=True)
         if result.returncode != 0:

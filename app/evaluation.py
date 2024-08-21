@@ -27,36 +27,35 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     check_list = params['check_list']
     if isinstance(check_list, str):
         check_list = [var.strip() for var in check_list.split(',') if len(var.strip()) > 0]
-    is_defined = True
-    if len(check_list) == 0:
-        is_defined = False
+        
+    check_list_defined = len(check_list) != 0
+    
     correct_feedback = random.choice(["Good Job!", "Well Done!", "Awesome"])
     general_feedback = check(response)
-    is_correct_answer, msg = check_syntax(answer)
 
-    if not is_correct_answer:
+    answer_correct, correct_output = check_syntax(answer)
+    if not answer_correct:
         return Result(is_correct=False, feedback="Please contact your teacher to give correct answer!")
+    
     if general_feedback != "General check passed!":
         return Result(is_correct=False, feedback=general_feedback)
     if not check_structure(response, answer, check_names=params.get('check_names', False)):
         return Result(is_correct=False, feedback="The methods or classes are not correctly defined.")
 
-    if msg:
-        is_correct, res_msg = check_answer_with_output(response, msg)
-        if not is_correct:
+    if correct_output:
+        is_correct, res_msg = check_answer_with_output(response, correct_output)
+        if not is_correct and not check_list_defined:
             # if check_list != 0, it means that output is not the importance
-            if not is_defined:
-                error_feedback = "The output is different to given answer: \n"
-                diff = output_diffs(res_msg, msg)
-                return Result(is_correct=False, feedback=markdown_format(error_feedback + diff))
+            error_feedback = "The output is different to given answer: \n"
+            diff = output_diffs(res_msg, correct_output)
+            return Result(is_correct=False, feedback=markdown_format(error_feedback + diff))
         else:
             return Result(is_correct=True, feedback=correct_feedback)
-    else:
-        if check_each_letter(response, answer):
+    elif check_each_letter(response, answer):
             return Result(is_correct=True, feedback=correct_feedback)
 
     # if the checklist is not given, it is meaningless to check the variables, then we will call for AI
-    if is_defined:
+    if check_list_defined:
         is_correct, feedback, remaining_check_list, response = check_global_variable_content(response, answer,
                                                                                              check_list)
         if not is_correct:
@@ -77,24 +76,25 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
 
     result = ai_feedback(response, answer)
     feedback = result[
-        'Feedback'] if is_defined else f"{result['Feedback']}\nContact your teacher to give checklist if possible"
+        'Feedback'] if check_list_defined else f"{result['Feedback']}\nContact your teacher to give checklist if possible"
     return Result(is_correct=result['Bool'], feedback=markdown_format(feedback))
 
 
-def check_answer_with_output(response, output_msg):
+def check_answer_with_output(response, correct_output):
     """
     The function is called iff the answer is unique. i.e. aList = [1,2,3,4,5] is the unique answer
     Notice that styles (at least they can pass general check) are NOT sensitive
     """
+    res_feedback = ""
     try:
-        res_result = subprocess.run(['python', '-c', response], capture_output=True, text=True)
-        if res_result.returncode != 0:
-            res_feedback = f"Error: {res_result.stderr.strip()}"
+        response_output = subprocess.run(['python', '-c', response], capture_output=True, text=True)
+        if response_output.returncode != 0:
+            res_feedback = f"Error: {response_output.stderr.strip()}"
         else:
-            res_feedback = res_result.stdout.strip()
+            res_feedback = response_output.stdout.strip()
     except Exception as e:
         res_feedback = f"Exception"
-    return check_each_letter(res_feedback, output_msg), res_feedback
+    return check_each_letter(res_feedback, correct_output), res_feedback
 
 
 def check_each_letter(response, answer):

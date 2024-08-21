@@ -15,8 +15,10 @@ class NodeType(Enum):
             return ""
 
 class Node:
-    def __init__(self, type: NodeType):
+    def __init__(self, type: NodeType, name: str, check_names: bool):
         self.type = type
+        self.name = name
+        self.check_names = check_names
         self.children = []
     
     def add_child(self, child):
@@ -27,6 +29,8 @@ class Node:
             return False
         else:
             if self.type != other.type:
+                return False
+            if self.check_names and self.name != other.name:
                 return False
             for child1, child2 in zip(self.children, other.children):
                 if child1 != child2:
@@ -45,25 +49,25 @@ class Node:
         return f"{out}]"
 
 
-def extract_definitions(node, parent):
+def extract_definitions(node, parent, check_names: bool):
     for child in ast.iter_child_nodes(node):
         if isinstance(child, ast.FunctionDef):
-            child_node = extract_definitions(child, Node(NodeType.FUNCTION))
+            child_node = extract_definitions(child, Node(NodeType.FUNCTION, child.name, check_names), check_names)
             parent.add_child(child_node)
         elif isinstance(child, ast.ClassDef):
-            child_node = extract_definitions(child, Node(NodeType.CLASS))
+            child_node = extract_definitions(child, Node(NodeType.CLASS, child.name, check_names), check_names)
             parent.add_child(child_node)
     return parent
 
 
-def split_structure(code_str):
+def split_structure(code_str, check_names: bool):
     tree = ast.parse(code_str)
-    hierarchy = extract_definitions(tree, Node(NodeType.ROOT))
+    hierarchy = extract_definitions(tree, Node(NodeType.ROOT, "", False), check_names)
     return hierarchy
 
 
-def check_structure(response, answer):
-    return split_structure(response) == split_structure(answer)
+def check_structure(response, answer, check_names: bool = False):
+    return split_structure(response, check_names) == split_structure(answer, check_names)
 
 
 if __name__ == '__main__':

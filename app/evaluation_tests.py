@@ -89,6 +89,35 @@ class lorem:
     def sit():
         pass
 """))
+        
+    def test_structure_check_names(self):
+        from .checks.structure_check import check_structure
+        # These samples have the same structure but different names.
+        # check_structure should mark them as different when 
+        # check_names is True
+
+        self.assertFalse(check_structure("""
+class hello:
+    def foo():
+        pass
+    
+    def bar():
+        pass
+    
+    def hello():
+        pass
+""", """
+class lorem:
+    def ipsum():
+        pass
+    
+    def dolor():
+        pass
+    
+    def sit():
+        pass
+""", check_names=True))
+        
 
 
 if __name__ == "__main__":

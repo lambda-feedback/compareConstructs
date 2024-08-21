@@ -20,3 +20,7 @@ class CheckResult:
 
     def message(self) -> str:
         return self.message
+    
+    def combine(self, other):
+        self.payloads.update(other.payloads)
+        return self

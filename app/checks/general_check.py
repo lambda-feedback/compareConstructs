@@ -39,16 +39,7 @@ def format_syntax_error(e: SyntaxError) -> str:
     caret = "".join(' ' for _ in range(e.offset - 1)) + '^'
     return f"{e.msg}\n{e.text.rstrip()}\n{caret}"
 
-def check_style(code_string) -> CheckResult:
-    formatted_code_lines = response_format(code_string)
-    if not check_indents(formatted_code_lines):
-        return (
-            CheckResult(False)
-                .add_message(f"Indent error, the indent should only be multiple of 2 or 4")
-            )
-    
-    # Attempt to parse the code into an AST. If it is not syntactically correct,
-    # this will fail.
+def get_ast(code_string: str) -> CheckResult:
     try:
         tree = ast.parse(code_string)
         return (
@@ -63,24 +54,26 @@ def check_style(code_string) -> CheckResult:
     except:
         return (
             CheckResult(False)
-                .add_message(f"Exception raised when parsing response")
+                .add_message(f"Exception raised when parsing")
         )
+
+def check_style(code_string) -> CheckResult:
+    formatted_code_lines = response_format(code_string)
+    if not check_indents(formatted_code_lines):
+        return (
+            CheckResult(False)
+                .add_message(f"Indent error, the indent should only be multiple of 2 or 4")
+            )
+    
+    # Attempt to parse the code into an AST. If it is not syntactically correct,
+    # this will fail and return False.
+    return get_ast(code_string)
 
 
 def validate_answer(code_string: str) -> CheckResult:
-    answer_ast = None
-    try:
-        answer_ast = ast.parse(code_string)
-    except SyntaxError as e:
-        return (
-            CheckResult(False)
-                .add_message(format_syntax_error(e))
-        )
-    except:
-        return (
-            CheckResult(False)
-                .add_message(f"Exception raised when parsing answer")
-        )
+    answer_ast_result = get_ast(code_string)
+    if not answer_ast_result.passed():
+        return answer_ast_result
 
     try:
         result = subprocess.run(['python', '-c', code_string], capture_output=True)
@@ -94,7 +87,7 @@ def validate_answer(code_string: str) -> CheckResult:
             return (
                 CheckResult(True)
                     .add_payload("correct_output", result.stdout.decode('utf-8'))
-                    .add_payload("ast", answer_ast)
+                    .combine(answer_ast_result)
             )
     except Exception:
         return CheckResult(False).add_message("An exception occurred during answer execution")

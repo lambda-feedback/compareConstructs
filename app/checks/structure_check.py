@@ -63,6 +63,8 @@ def extract_definitions(node, parent, check_names: bool):
 
 
 def check_structure(response: Module, answer: Module, check_names: bool = False) -> CheckResult:
+    """Checks that the response has the same class and function heirarchy as the answer"""
+
     response_tree = extract_definitions(response, Node(NodeType.ROOT, "", False), check_names)
     answer_tree = extract_definitions(answer, Node(NodeType.ROOT, "", False), check_names)
     same = response_tree == answer_tree

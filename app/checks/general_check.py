@@ -58,6 +58,8 @@ def get_ast(code_string: str) -> CheckResult:
         )
 
 def check_style(code_string) -> CheckResult:
+    """Checks that the response is correct syntactically, and uses correct indentation"""
+
     formatted_code_lines = response_format(code_string)
     if not check_indents(formatted_code_lines):
         return (
@@ -71,6 +73,11 @@ def check_style(code_string) -> CheckResult:
 
 
 def validate_answer(code_string: str) -> CheckResult:
+    """Ensures that the answer is valid.
+    Additionally, executes the answer code to obtain the values it 
+    prints to stdout.
+    """
+
     answer_ast_result = get_ast(code_string)
     if not answer_ast_result.passed():
         return answer_ast_result

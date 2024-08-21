@@ -41,21 +41,21 @@ def f(x, y):
         check_list = ['f', 'hi']
 
         result = evaluation_function(response, answer, Params(check_list=check_list))
-        print(result['is_correct'])
-        print(result['feedback'])
+        self.assertTrue(result['is_correct'])
     
     def test_structure_check(self):
         from .checks.structure_check import check_structure
+        import ast
         # Verify that structures with the same parent names are not 
         # marked as correct (this would have returned true before)
-        self.assertFalse(check_structure("""
+        self.assertFalse(check_structure(ast.parse("""
 def hello():
     def foo():
         pass
     def hello():
         def bar():
             pass
-""", """
+"""), ast.parse("""
 class hello:
     def foo():
         pass
@@ -65,10 +65,10 @@ class hello:
     
     def hello():
         pass
-"""))
+""")).passed())
         # Code with the same structure but different function/class
         # names should still be accepted.
-        self.assertTrue(check_structure("""
+        self.assertTrue(check_structure(ast.parse("""
 class hello:
     def foo():
         pass
@@ -78,7 +78,7 @@ class hello:
     
     def hello():
         pass
-""", """
+"""), ast.parse("""
 class lorem:
     def ipsum():
         pass
@@ -88,15 +88,16 @@ class lorem:
     
     def sit():
         pass
-"""))
+""")).passed())
         
     def test_structure_check_names(self):
         from .checks.structure_check import check_structure
+        import ast
         # These samples have the same structure but different names.
         # check_structure should mark them as different when 
         # check_names is True
 
-        self.assertFalse(check_structure("""
+        self.assertFalse(check_structure(ast.parse("""
 class hello:
     def foo():
         pass
@@ -106,7 +107,7 @@ class hello:
     
     def hello():
         pass
-""", """
+"""), ast.parse("""
 class lorem:
     def ipsum():
         pass
@@ -116,8 +117,29 @@ class lorem:
     
     def sit():
         pass
-""", check_names=True))
-        
+"""), check_names=True).passed())
+    
+    def test_syntax_check(self):
+        from .checks.general_check import check_style
+
+        # This sample is correct, so it should pass the check
+        self.assertTrue(check_style("print('Hello, World!')").passed())
+        # This sample has a missing quote, so it should fail
+        check_result = check_style("print('Hello, World!)")
+        self.assertFalse(check_result.passed())
+        self.assertTrue(len(check_result.message()) != 0)
+    
+    def test_answer_validate(self):
+        from .checks.general_check import validate_answer
+
+        # This sample is correct, so it should pass the check
+        validate_result = validate_answer("print('Hello, World!')")
+        self.assertTrue(validate_result.passed())
+        self.assertEqual(validate_result.get_payload("correct_output"), "Hello, World!\n")
+        # This sample's syntax is correct, but it will cause a runtime error
+        self.assertFalse(validate_answer("foo('Hello, World!')").passed())
+        # This sample's syntax is incorrect
+        self.assertFalse(validate_answer("print('Hello, World!)").passed())
 
 
 if __name__ == "__main__":

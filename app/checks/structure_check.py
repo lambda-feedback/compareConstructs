@@ -1,5 +1,7 @@
 import ast
+from ast import Module
 from enum import Enum
+from .check_result import CheckResult
 
 class NodeType(Enum):
     ROOT = 0
@@ -60,14 +62,17 @@ def extract_definitions(node, parent, check_names: bool):
     return parent
 
 
-def split_structure(code_str, check_names: bool):
-    tree = ast.parse(code_str)
-    hierarchy = extract_definitions(tree, Node(NodeType.ROOT, "", False), check_names)
-    return hierarchy
+def check_structure(response: Module, answer: Module, check_names: bool = False) -> CheckResult:
+    """Checks that the response has the same class and function heirarchy as the answer"""
 
+    response_tree = extract_definitions(response, Node(NodeType.ROOT, "", False), check_names)
+    answer_tree = extract_definitions(answer, Node(NodeType.ROOT, "", False), check_names)
+    same = response_tree == answer_tree
+    message = ""
+    if not same:
+        message = "Are you sure all the correct classes and functions are defined?"
 
-def check_structure(response, answer, check_names: bool = False):
-    return split_structure(response, check_names) == split_structure(answer, check_names)
+    return CheckResult(same).add_message(message)
 
 
 if __name__ == '__main__':
@@ -88,6 +93,4 @@ def f(x, y):
 
     """
     print(NodeType.CLASS)
-    print(split_structure(response))
-    print(split_structure(answer))
     print(check_structure(response, answer))

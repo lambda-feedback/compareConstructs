@@ -57,7 +57,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
         if result.passed():
             return Result(is_correct=True, feedback=correct_feedback)
         else:
-            return Result(is_correct=False, feedback=f'Incorrect: {result.message()}')
+            return Result(is_correct=False, feedback=result.message())
 
     # Analyse the structure of the response, and ensure that it has the same function/class
     # heirarchy as the correct answer.

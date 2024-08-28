@@ -29,25 +29,25 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
     if not num_response_args:
         return (
             CheckResult(False)
-            .add_message(f'did you declare a function called "{func_name}"?')
+            .add_message(f'Did you declare a function called "{func_name}"?')
         )
     if not num_answer_args:
         return (
             CheckResult(False)
-            .add_message(f'the answer does not declare a function called "{func_name}". Please contact your teacher.')
+            .add_message(f'The answer does not declare a function called "{func_name}". Please contact your teacher.')
         )
     if num_response_args != num_answer_args:
         return (
             CheckResult(False)
-            .add_message(f'the signature of "{func_name}" is incorrect. Try checking its arguments.')
+            .add_message(f'The signature of "{func_name}" is incorrect. Try checking its arguments.')
         )
 
     # Extract the list of tests from the answer's context
     tests = answer_context.get('tests', None)
     if not tests:
-        return CheckResult(False).add_message('no tests given in answer')
+        return CheckResult(False).add_message('No tests given in answer')
     if not isinstance(tests, list):
-        return CheckResult(False).add_message('tests must be a list of tuples')
+        return CheckResult(False).add_message('Tests must be a list of tuples')
 
     # Create an expression that calls the function with the given arguments.
     # This is parsed and compiled ahead of time for efficiency.
@@ -76,9 +76,9 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
         # Check that the number of arguments given and the number expected by 
         # the function are equal.
         if isinstance(args, tuple) and len(args) != num_response_args:
-            return CheckResult(False).add_message('incorrect test cases.')
+            return CheckResult(False).add_message('Incorrect test cases.')
         elif not isinstance(args, tuple) and num_response_args != 1:
-            return CheckResult(False).add_message('incorrect test cases.')
+            return CheckResult(False).add_message('Incorrect test cases.')
 
         # Add args as a global variable for the answer and response
         response_context['args'] = args

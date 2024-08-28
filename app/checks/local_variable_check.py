@@ -86,6 +86,9 @@ def check_local_variable_content(response, answer, check_list: list):
 
     # only the same function name will be checked
     method_names = answer_method_params_and_body_list.keys() & response_method_params_and_body_list.keys()
+    # if methods are empty, return NotDefined
+    if not method_names:
+        return True, "NotDefined"
 
     remaining_check_list = check_list
     feedback = ""

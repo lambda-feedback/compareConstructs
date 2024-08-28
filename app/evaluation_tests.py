@@ -265,6 +265,27 @@ tests = [
         result = evaluation_function(response, answer, Params(check_func="sum"))
         self.assertTrue(result['is_correct'])
 
+
+    def test_func_check_dynamic(self):
+        from .checks.check_func import check_func
+        import ast
+        response = """
+def sum(a, b):
+    return a + b
+"""
+        answer = """
+from random import randint
+
+def sum(a, b):
+    return a + b
+
+tests = [(randint(0, 10), randint(0, 10)) for _ in range(1000)]
+"""
+        # check_func should support dynamic generation of test cases
+        result = check_func(ast.parse(response), ast.parse(answer), "sum")
+        self.assertTrue(result.passed())
+
+
 if __name__ == "__main__":
     unittest.main()
 

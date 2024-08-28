@@ -141,7 +141,7 @@ class lorem:
         # This sample's syntax is incorrect
         self.assertFalse(validate_answer("print('Hello, World!)").passed())
 
-    def test_name_error(self):
+    def test_globals(self):
         response = """
 import numpy as np 
 x_1 = np.arange(-5, 2+0.5, 0.5)
@@ -166,6 +166,18 @@ f = np.sin(x)
 g = np.sin(x**2+np.pi)"""
         print(evaluation_function(response, answer, Params(check_list="x,f,g", check_names=False)))
 
+
+    def test_locals(self):
+        response = """
+def hi():
+    a = 2
+    b = 2
+"""
+        answer = """
+def hi():
+    a = 1
+    b = 2"""
+        print(evaluation_function(response, answer, Params(check_list="a,b", check_names=False)))
 
 if __name__ == "__main__":
     unittest.main()

@@ -15,25 +15,23 @@ tolerance = 1e-8
 GLOBAL_ERR_VAR_CONTENT = []
 
 
-class VariableVisitor(ast.NodeVisitor):
-    def __init__(self):
-        self.variables = set()
-
-    def visit_FunctionDef(self, node):
-        # Skip the function name and only visit the body
-        for stmt in node.body:
-            self.visit(stmt)
-
-    def visit_Name(self, node):
-        if node.id not in dir(builtins):
-            self.variables.add(node.id)
-        self.generic_visit(node)
-
-
 # Function to execute the code and check the content of variables
-def variable_content(code_str) -> dict:
+def variable_content(code_str, tree) -> (bool, dict):
+    class VariableVisitor(ast.NodeVisitor):
+        def __init__(self):
+            self.variables = set()
+
+        def visit_FunctionDef(self, node):
+            # Skip the function name and only visit the body
+            for stmt in node.body:
+                self.visit(stmt)
+
+        def visit_Name(self, node):
+            if node.id not in dir(builtins):
+                self.variables.add(node.id)
+            self.generic_visit(node)
+
     visitor = VariableVisitor()
-    tree = ast.parse(code_str)
     visitor.visit(tree)
     variables = visitor.variables
     context = {}
@@ -44,13 +42,13 @@ def variable_content(code_str) -> dict:
     except SystemExit:
         pass
     except Exception as e:
-        return {"err": e}
+        return False, {"err": e}
 
-    return {var: context.get(var) for var in variables if
-            not isinstance(context.get(var), types.FunctionType) and context.get(var) is not None}
+    return True, {var: context.get(var) for var in variables if
+                  not isinstance(context.get(var), types.FunctionType) and context.get(var) is not None}
 
 
-def check_global_variable_content(response, answer, check_list: list):
+def check_global_variable_content(response, answer, check_list: list, response_ast, answer_ast):
     """
     Teacher should give a variable check-list for us due to the importance of the variables relying on the Teacher's goal
     """
@@ -58,24 +56,18 @@ def check_global_variable_content(response, answer, check_list: list):
     global GLOBAL_ERR_VAR_CONTENT
 
     # get variable contents by executing the code
-    response_var_dict = variable_content(response)
-    answer_var_dict = variable_content(answer)
+    is_res_exec, response_var_dict = variable_content(response, response_ast)
+    is_ans_exec, answer_var_dict = variable_content(answer, answer_ast)
 
-    # sometimes students give us different variable names, but we can figure out the difference
-    response, response_var_dict = check_same_content_with_different_variable(response, response_var_dict,
-                                                                             answer_var_dict, check_list)
-    # Any execution will be captured
-    if "err" in answer_var_dict.keys():
-        return False, answer_var_dict['err'], check_list, response
-    if "err" in response_var_dict.keys():
+    if not is_ans_exec:
+        return False, f"The given answer is wrong:\n{answer_var_dict['err']}", check_list, response
+
+    if not is_res_exec:
         return False, response_var_dict['err'], check_list, response
 
-    # # params type are not declared and generated variables do not fit the type of the variable
-    # if "NotDefined" in answer_var_dict.keys():
-    #     return True, "NotDefined", check_list, response
-    # if "NotDefined" in response_var_dict.keys():
-    #     return True, "NotDefined", check_list, response
-    # check whether they have the same variable names
+    # sometimes students give us different variable names, but we can figure out the difference
+    response, response_var_dict = check_same_content_with_different_variable(
+        response, response_var_dict, answer_var_dict, response_ast, answer_ast, check_list)
 
     # get the same variables
     answer_var_set = answer_var_dict.keys()
@@ -140,7 +132,8 @@ def get_err_vars():
 
 def is_equal(variable_name, response_variable_content, answer_variable_content, error_var_contents,
              remaining_check_list):
-    # TODO: add other equivalent relation: Notice that the return type contains: (is_correct, feedback, error_var, remaining_check_list)
+    # TODO: add other equivalent relation:
+    #  Notice that the return type contains: (is_correct, feedback, error_var, remaining_check_list)
     if type(response_variable_content) != type(answer_variable_content):
         error_var_contents.append(variable_name)
         return False, f"The type of '{variable_name}' is not correct. Expected: {type(answer_variable_content).__name__}", \

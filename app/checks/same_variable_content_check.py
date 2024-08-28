@@ -5,7 +5,7 @@ import copy
 
 
 def check_same_content_with_different_variable(response, response_var_dict: dict, answer_var_dict: dict,
-                                               check_list: list = [], mode=''):
+                                               res_ast, ans_ast, check_list: list,  mode=''):
     """
     The method is called when students input different variable names with the same content,
     and we try to figure the similarities and replace the response to the desired (same) variable names for checklist
@@ -28,7 +28,7 @@ def check_same_content_with_different_variable(response, response_var_dict: dict
                 response_val = response_var_dict[response_key]
                 if is_equal(response_val, answer_val) and answer_key != response_key:
                     response_var_dict[answer_key] = answer_val
-                    response = replace_variable_in_code(response, response_key, answer_key)
+                    response = replace_variable_in_code(response_key, answer_key, res_ast)
                     changed_dict.update({response_key: answer_key})
                     break
         elif answer_key in check_list:
@@ -36,7 +36,7 @@ def check_same_content_with_different_variable(response, response_var_dict: dict
                 changed_dict = {}
                 response_val = response_var_dict[response_key]
                 if is_equal(response_val, answer_val) and answer_key != response_key:
-                    response = replace_variable_in_code(response, response_key, answer_key)
+                    response = replace_variable_in_code(response_key, answer_key, ans_ast)
                     changed_dict.update({response_key: answer_key})
                     break
 
@@ -47,20 +47,20 @@ def check_same_content_with_different_variable(response, response_var_dict: dict
     return response, response_var_dict
 
 
-class VariableRenamer(ast.NodeTransformer):
-    def __init__(self, old_name, new_name):
-        self.old_name = old_name
-        self.new_name = new_name
-
-    def visit_Name(self, node):
-        # Check if the name is in a Store context (assignment, for loop target, etc.)
-        if isinstance(node.ctx, (ast.Store, ast.Load)) and node.id == self.old_name:
-            node.id = self.new_name
-        return node
 
 
-def replace_variable_in_code(code, old_name, new_name):
-    tree = ast.parse(code)
+
+def replace_variable_in_code(old_name, new_name, tree):
+    class VariableRenamer(ast.NodeTransformer):
+        def __init__(self, old_name, new_name):
+            self.old_name = old_name
+            self.new_name = new_name
+
+        def visit_Name(self, node):
+            # Check if the name is in a Store context (assignment, for loop target, etc.)
+            if isinstance(node.ctx, (ast.Store, ast.Load)) and node.id == self.old_name:
+                node.id = self.new_name
+            return node
     renamer = VariableRenamer(old_name, new_name)
     tree = renamer.visit(tree)
     ast.fix_missing_locations(tree)

@@ -27,9 +27,9 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     check_list = params.get('check_list', [])
     if isinstance(check_list, str):
         check_list = [var.strip() for var in check_list.split(',') if len(var.strip()) > 0]
-        
+
     check_list_defined = len(check_list) != 0
-    
+
     correct_feedback = random.choice(["Good Job!", "Well Done!", "Awesome"])
 
     # Ensure that the answer is valid
@@ -37,7 +37,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     answer_feedback = validate_answer(answer)
     if not answer_feedback.passed():
         return Result(is_correct=False, feedback=answer_feedback.message())
-    answer_ast = answer_feedback.get_payload("ast", None)
+    ans_ast = answer_feedback.get_payload("ast", None)
     correct_output = answer_feedback.get_payload("correct_output", None)
 
     # Check the student response's code style, and return an incorrect response if 
@@ -46,13 +46,13 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     general_feedback = check_style(response)
     if not general_feedback.passed():
         return Result(is_correct=False, feedback=general_feedback.message())
-    response_ast = general_feedback.get_payload("ast", None)
-    
+    res_ast = general_feedback.get_payload("ast", None)
+
     # Analyse the structure of the response, and ensure that it has the same function/class
     # heirarchy as the correct answer.
     structure_feedback = check_structure(
-        response_ast,
-        answer_ast,
+        res_ast,
+        ans_ast,
         check_names=params.get('check_names', False)
     )
     if not structure_feedback.passed():
@@ -69,22 +69,24 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
         else:
             return Result(is_correct=True, feedback=correct_feedback)
     elif check_each_letter(response, answer):
-            return Result(is_correct=True, feedback=correct_feedback)
+        return Result(is_correct=True, feedback=correct_feedback)
 
     # if the checklist is not given, it is meaningless to check the variables, then we will call for AI
     if check_list_defined:
-        is_correct, feedback, remaining_check_list, response = check_global_variable_content(response, answer,
-                                                                                             check_list)
+        is_correct, feedback, remaining_check_list, response = check_global_variable_content(
+            response, answer, check_list, res_ast, ans_ast)
+        _, res_var_dict = extract_modules(variable_content(response, res_ast)[1])
+        _, ans_var_dict = extract_modules(variable_content(answer, ans_ast)[1])
         if not is_correct:
             variable_list = get_err_vars()
-            _, res_var_dict = extract_modules(variable_content(response))
-            _, ans_var_dict = extract_modules(variable_content(answer))
+
             diff = variables_content_compare(variable_list, res_var_dict, ans_var_dict)
             return Result(is_correct=False, feedback=markdown_format(f"{feedback}\n{diff}"))
         else:
             if len(remaining_check_list) == 0:
                 return Result(is_correct=True, feedback=correct_feedback)
-            is_correct, feedback = check_local_variable_content(response, answer, remaining_check_list)
+            is_correct, feedback = check_local_variable_content(
+                response, answer, res_var_dict, ans_var_dict, remaining_check_list, res_ast, ans_ast)
             if is_correct:
                 if feedback != "NotDefined":
                     return Result(is_correct=True, feedback=correct_feedback)

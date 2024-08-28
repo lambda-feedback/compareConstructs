@@ -7,12 +7,10 @@ import types
 import itertools
 import astor
 
-
 from .global_variable_check import variable_content, check_global_variable_content
 from ..format.general_format import local_missing_modules_and_variables_format
 from ..utils.param_utils import param_generator, guess_param_type
 from .same_variable_content_check import check_same_content_with_different_variable
-
 
 
 class MethodParamBodyExtractor(ast.NodeVisitor):
@@ -75,7 +73,7 @@ def extract_params_and_body(code_str):
 # """
 # print(extract_params_and_body(code))
 
-def check_local_variable_content(response, answer, check_list: list):
+def check_local_variable_content(response, answer, response_var_dict, answer_var_dict, check_list, res_ast, ans_ast):
     """
     TODO The checklist will be randomly generated when the checklist is empty (it's teachers' input)
     otherwise, the local variable will be checked
@@ -92,10 +90,6 @@ def check_local_variable_content(response, answer, check_list: list):
 
     remaining_check_list = check_list
     feedback = ""
-
-    # it still needs to check the global variable content at first
-    response_var_dict = variable_content(response)
-    answer_var_dict = variable_content(answer)
 
     for method_name in method_names:
         # add sys to the dict, it changes locally but not globally
@@ -120,11 +114,12 @@ def check_local_variable_content(response, answer, check_list: list):
             answer_params_dict = {param: guess_param_type(param, answer_body) for param in answer_arg_list}
             response_params_dict = {param: guess_param_type(param, response_body) for param in response_arg_list}
             response_body, response_params_dict = check_same_content_with_different_variable(
-                response_body, response_params_dict, answer_params_dict, mode='param')
+                response_body, response_params_dict, answer_params_dict, res_ast, ans_ast, [], mode='param')
 
             if response_params_dict != answer_params_dict:
                 if method_name in remaining_check_list:
-                    return False, f"The arguments of the method {method_name} are not correct: check inputs and types of the params"
+                    return False, f"The arguments of the method {method_name} are not correct: " \
+                                  f"check inputs and types of the params"
                 return True, "NotDefined"
             param_result_dict = param_generator(answer_arg_list, answer_body)
             # There are tiny probability that the generated answer is false positive
@@ -141,12 +136,14 @@ def check_local_variable_content(response, answer, check_list: list):
                     answer_params_msg = "\n".join(f"{key}={value}" for key, value in choice.items())
                     response_body = f"{global_response_variable_content}\n{response_params_msg}\n{response_body}"
                     answer_body = f"{global_answer_variable_content}\n{answer_params_msg}\n{answer_body}"
-                    remaining_check_list.append("TMP")
-                    is_correct, feedback, remaining_check_list, response_body = \
-                        check_global_variable_content(response_body, answer_body, remaining_check_list)
 
-                    response_var_dict = variable_content(response_body)
-                    answer_var_dict = variable_content(answer_body)
+                    remaining_check_list.append("TMP")
+                    is_correct, feedback, remaining_check_list, response_body = check_global_variable_content(
+                        response_body, answer_body, remaining_check_list, ast.parse(response_body),
+                        ast.parse(answer_body))
+
+                    _, response_var_dict = variable_content(response_body, ast.parse(response_body))
+                    _, answer_var_dict = variable_content(answer_body, ast.parse(answer_body))
                     response_var_dict = {k: v for k, v in response_var_dict.items() if
                                          k not in list(response_params_dict.keys()) and k != "TMP"}
                     answer_var_dict = {k: v for k, v in answer_var_dict.items() if
@@ -169,24 +166,24 @@ def check_local_variable_content(response, answer, check_list: list):
                         if feedback != "NameError" and method_name in remaining_check_list:
                             return False, f"The method {method_name} is not correct: {feedback}"
 
-
-
         else:
             response_body = f"{global_response_variable_content}\n{response_body}"
             answer_body = f"{global_answer_variable_content}\n{answer_body}"
 
             remaining_check_list.append("TMP")
 
-            response_var_dict.update(variable_content(response_body))
-            answer_var_dict.update(variable_content(answer_body))
+            res_ast = ast.parse(response_body)
+            ans_ast = ast.parse(answer_body)
+            response_var_dict.update(variable_content(response_body, res_ast)[1])
+            answer_var_dict.update(variable_content(answer_body, ans_ast)[1])
             response_var_dict.pop('TMP', 'NA')
             answer_var_dict.pop('TMP', 'NA')
-            is_correct, feedback, remaining_check_list, response_body = check_global_variable_content(response_body,
-                                                                                                      answer_body,
-                                                                                                      remaining_check_list)
+            is_correct, feedback, remaining_check_list, response_body = check_global_variable_content(
+                response_body, answer_body, remaining_check_list, res_ast, ans_ast)
             # response might have different argument input and execution error
             if feedback == "NameError":
-                return False, f"The arguments of the method {method_name} are not correct: check inputs and types of the params"
+                return False, f"The arguments of the method {method_name} are not correct: " \
+                              f"check inputs and types of the params"
             if feedback == "NotDefined":
                 return True, feedback
             if not is_correct:
@@ -220,5 +217,5 @@ def permutation(param_dict):
 
     permutations = itertools.product(*filtered_params)
     keys = [k for k, v in param_dict.items() if v]
-    perm_dict_list = [{**dict(zip(keys, permutation)), **empty_params_dict} for permutation in permutations]
+    perm_dict_list = [{**dict(zip(keys, per)), **empty_params_dict} for per in permutations]
     return perm_dict_list

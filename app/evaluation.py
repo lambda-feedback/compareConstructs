@@ -9,6 +9,7 @@ from .checks.global_variable_check import check_global_variable_content, get_err
 from .checks.local_variable_check import check_local_variable_content, extract_modules
 from .checks.general_check import check_style, validate_answer
 from .checks.structure_check import check_structure
+from .checks.check_func import check_func
 import subprocess
 
 
@@ -48,6 +49,16 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
         return Result(is_correct=False, feedback=general_feedback.message())
     response_ast = general_feedback.get_payload("ast", None)
     
+    # If a function test is desired, run tests to ensure that a particular function returns the 
+    # correct values
+    check_func_name = params.get('check_func', None)
+    if check_func_name:
+        result = check_func(response_ast, answer_ast, check_func_name)
+        if result.passed():
+            return Result(is_correct=True, feedback=correct_feedback)
+        else:
+            return Result(is_correct=False, feedback=f'Incorrect: {result.message()}')
+
     # Analyse the structure of the response, and ensure that it has the same function/class
     # heirarchy as the correct answer.
     structure_feedback = check_structure(

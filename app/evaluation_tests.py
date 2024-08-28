@@ -243,8 +243,27 @@ tests = [
 """
         # All the test cases should pass, so this should return True
         result = check_func(ast.parse(response), ast.parse(answer), "test")
-        print(result.message())
         self.assertTrue(result.passed())
+
+
+    def test_func_check_eval(self):
+        response = """
+def sum(a, b):
+    return a - (-b)
+"""
+        answer = """
+def sum(a, b):
+    return a + b
+
+tests = [
+    (0, 0),
+    (1, 1),
+    (100, 165),
+    (730, 21),
+]
+"""
+        result = evaluation_function(response, answer, Params(check_func="sum"))
+        self.assertTrue(result['is_correct'])
 
 if __name__ == "__main__":
     unittest.main()

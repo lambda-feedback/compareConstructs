@@ -166,18 +166,104 @@ f = np.sin(x)
 g = np.sin(x**2+np.pi)"""
         print(evaluation_function(response, answer, Params(check_list="x,f,g", check_names=False)))
 
+    def test_check_func(self):
+        from .checks.check_func import check_func
+        import ast
 
-    def test_locals(self):
         response = """
-def hi():
-    a = 2
-    b = 2
+def sum(a, b):
+    return a - (-b)
 """
         answer = """
-def hi():
-    a = 1
-    b = 2"""
-        print(evaluation_function(response, answer, Params(check_list="a,b", check_names=False)))
+def sum(a, b):
+    return a + b
+
+tests = [
+    (0, 0),
+    (1, 1),
+    (100, 165),
+    (730, 21),
+]
+"""
+        # All the test cases should pass, so this should return True
+        result = check_func(ast.parse(response), ast.parse(answer), "sum")
+        self.assertTrue(result.passed())
+
+        response = """
+def sum(a, b):
+    return a - b
+"""
+        # The response function no longer acts as it should, so this should fail
+        result = check_func(ast.parse(response), ast.parse(answer), "sum")
+        self.assertFalse(result.passed())
+
+        response = """
+def sum(a, b, c):
+    return a + b
+"""
+        # This response works, but the function has the wrong signature
+        result = check_func(ast.parse(response), ast.parse(answer), "sum")
+        self.assertFalse(result.passed())
+
+        response = """
+def foo(a, b):
+    return a + b
+"""
+        # No function called "sum" is declared
+        result = check_func(ast.parse(response), ast.parse(answer), "sum")
+        self.assertFalse(result.passed())
+    
+    def test_check_func_with_globals(self):
+        from .checks.check_func import check_func
+        import ast
+
+        # Functions should be able to use globals, including imports
+
+        response = """
+import numpy
+n = 10
+def test(a):
+    return numpy.full(n, a)
+"""
+        answer = """
+import numpy
+def test(a):
+    return numpy.full(10, a)
+
+def equals(a, b):
+    return numpy.allclose(a, b)
+
+tests = [
+    0,
+    1,
+    2,
+    3,
+    4,
+]
+"""
+        # All the test cases should pass, so this should return True
+        result = check_func(ast.parse(response), ast.parse(answer), "test")
+        self.assertTrue(result.passed())
+
+
+    def test_func_check_eval(self):
+        response = """
+def sum(a, b):
+    return a - (-b)
+"""
+        answer = """
+def sum(a, b):
+    return a + b
+
+tests = [
+    (0, 0),
+    (1, 1),
+    (100, 165),
+    (730, 21),
+]
+"""
+        result = evaluation_function(response, answer, Params(check_func="sum"))
+        self.assertTrue(result['is_correct'])
 
 if __name__ == "__main__":
     unittest.main()

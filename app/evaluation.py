@@ -9,6 +9,7 @@ from .checks.global_variable_check import check_global_variable_content, get_err
 from .checks.local_variable_check import check_local_variable_content, extract_modules
 from .checks.general_check import check_style, validate_answer
 from .checks.structure_check import check_structure
+from .checks.check_func import check_func
 import subprocess
 
 
@@ -16,6 +17,7 @@ class Params(TypedDict):
     # TODO it will be list after the website updates
     check_list: Any
     check_names: bool
+    check_func: str
 
 
 class Result(TypedDict):
@@ -37,7 +39,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     answer_feedback = validate_answer(answer)
     if not answer_feedback.passed():
         return Result(is_correct=False, feedback=answer_feedback.message())
-    ans_ast = answer_feedback.get_payload("ast", None)
+    answer_ast = answer_feedback.get_payload("ast", None)
     correct_output = answer_feedback.get_payload("correct_output", None)
 
     # Check the student response's code style, and return an incorrect response if 
@@ -46,13 +48,23 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     general_feedback = check_style(response)
     if not general_feedback.passed():
         return Result(is_correct=False, feedback=general_feedback.message())
-    res_ast = general_feedback.get_payload("ast", None)
+    response_ast = general_feedback.get_payload("ast", None)
+    
+    # If a function test is desired, run tests to ensure that a particular function returns the 
+    # correct values
+    check_func_name = params.get('check_func', None)
+    if check_func_name:
+        result = check_func(response_ast, answer_ast, check_func_name)
+        if result.passed():
+            return Result(is_correct=True, feedback=correct_feedback)
+        else:
+            return Result(is_correct=False, feedback=result.message())
 
     # Analyse the structure of the response, and ensure that it has the same function/class
     # heirarchy as the correct answer.
     structure_feedback = check_structure(
-        res_ast,
-        ans_ast,
+        response_ast,
+        answer_ast,
         check_names=params.get('check_names', False)
     )
     if not structure_feedback.passed():
@@ -74,9 +86,9 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     # if the checklist is not given, it is meaningless to check the variables, then we will call for AI
     if check_list_defined:
         is_correct, feedback, remaining_check_list, response = check_global_variable_content(
-            response, answer, check_list, res_ast, ans_ast)
-        _, res_var_dict = extract_modules(variable_content(response, res_ast)[1])
-        _, ans_var_dict = extract_modules(variable_content(answer, ans_ast)[1])
+            response, answer, check_list, response_ast, answer_ast)
+        _, res_var_dict = extract_modules(variable_content(response, response_ast)[1])
+        _, ans_var_dict = extract_modules(variable_content(answer, answer_ast)[1])
         if not is_correct:
             variable_list = get_err_vars()
 
@@ -86,7 +98,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
             if len(remaining_check_list) == 0:
                 return Result(is_correct=True, feedback=correct_feedback)
             is_correct, feedback = check_local_variable_content(
-                response, answer, res_var_dict, ans_var_dict, remaining_check_list, res_ast, ans_ast)
+                response, answer, res_var_dict, ans_var_dict, remaining_check_list, response_ast, answer_ast)
             if is_correct:
                 if feedback != "NotDefined":
                     return Result(is_correct=True, feedback=correct_feedback)

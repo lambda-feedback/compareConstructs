@@ -41,12 +41,10 @@ def variable_content(code_str) -> dict:
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
             exec(code_str, context)
-    except NameError:
-        return {"err": ""}
     except SystemExit:
         pass
-    except Exception:
-        return {"NotDefined": ""}
+    except Exception as e:
+        return {"err": e}
 
     return {var: context.get(var) for var in variables if
             not isinstance(context.get(var), types.FunctionType) and context.get(var) is not None}
@@ -59,30 +57,33 @@ def check_global_variable_content(response, answer, check_list: list):
 
     global GLOBAL_ERR_VAR_CONTENT
 
+    # get variable contents by executing the code
     response_var_dict = variable_content(response)
     answer_var_dict = variable_content(answer)
 
-    # sometimes students give us different variable names, but we could figure the difference
+    # sometimes students give us different variable names, but we can figure out the difference
     response, response_var_dict = check_same_content_with_different_variable(response, response_var_dict,
                                                                              answer_var_dict, check_list)
-    # sometimes local variables are defined in the outer scope
+    # Any execution will be captured
     if "err" in answer_var_dict.keys():
-        return False, "NameError", check_list, response
+        return False, answer_var_dict['err'], check_list, response
     if "err" in response_var_dict.keys():
-        return False, "NameError", check_list, response
+        return False, response_var_dict['err'], check_list, response
 
-    # params type are not declared and generated variables do not fit the type of the variable
-    if "NotDefined" in answer_var_dict.keys():
-        return True, "NotDefined", check_list, response
-    if "NotDefined" in response_var_dict.keys():
-        return True, "NotDefined", check_list, response
+    # # params type are not declared and generated variables do not fit the type of the variable
+    # if "NotDefined" in answer_var_dict.keys():
+    #     return True, "NotDefined", check_list, response
+    # if "NotDefined" in response_var_dict.keys():
+    #     return True, "NotDefined", check_list, response
     # check whether they have the same variable names
+
+    # get the same variables
     answer_var_set = answer_var_dict.keys()
     response_var_set = response_var_dict.keys()
     intersections = response_var_set & answer_var_set
     error_var_contents = []
-    is_defined = True
 
+    is_defined = True
     remaining_check_list = copy.deepcopy(check_list)
 
     for var in check_list:
@@ -100,6 +101,7 @@ def check_global_variable_content(response, answer, check_list: list):
             else:
                 is_defined = False
 
+    # TMP is used for local variable checks
     if "TMP" in remaining_check_list:
         remaining_check_list.remove("TMP")
         if len(remaining_check_list) == 0:
@@ -115,6 +117,7 @@ def check_global_variable_content(response, answer, check_list: list):
             elif "TMP" in response_var_set:
                 return False, "The return statement is redundant", remaining_check_list, response
 
+    # error_contents occur when student provides the same answer but
     if len(error_var_contents) == 0:
         if is_defined:
             return True, "", remaining_check_list, response

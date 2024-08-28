@@ -141,6 +141,13 @@ class lorem:
         # This sample's syntax is incorrect
         self.assertFalse(validate_answer("print('Hello, World!)").passed())
 
+    def test_general(self):
+        response = """
+a=3"""
+        answer = """
+a=2"""
+        print(evaluation_function(response, answer, Params(check_list="a", check_names=False)))
+
 
 if __name__ == "__main__":
     unittest.main()

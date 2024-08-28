@@ -4,6 +4,7 @@ from .check_result import CheckResult
 import subprocess
 import ast
 
+
 def check_indents(formatted_code_lines) -> bool:
     """
     This function checks the indentation correctness of the given Python code.
@@ -35,27 +36,30 @@ def check_indents(formatted_code_lines) -> bool:
 
     return all(indent_level % indent_difference == 0 for indent_level in indent_levels)
 
+
 def format_syntax_error(e: SyntaxError) -> str:
     caret = "".join(' ' for _ in range(e.offset - 1)) + '^'
     return f"{e.msg}\n{e.text.rstrip()}\n{caret}"
+
 
 def get_ast(code_string: str) -> CheckResult:
     try:
         tree = ast.parse(code_string)
         return (
             CheckResult(True)
-                .add_payload("ast", tree)
+            .add_payload("ast", tree)
         )
     except SyntaxError as e:
         return (
             CheckResult(False)
-                .add_message(format_syntax_error(e))
+            .add_message(format_syntax_error(e))
         )
     except:
         return (
             CheckResult(False)
-                .add_message(f"Exception raised when parsing")
+            .add_message(f"Exception raised when parsing")
         )
+
 
 def check_style(code_string) -> CheckResult:
     """Checks that the response is correct syntactically, and uses correct indentation"""
@@ -64,9 +68,9 @@ def check_style(code_string) -> CheckResult:
     if not check_indents(formatted_code_lines):
         return (
             CheckResult(False)
-                .add_message(f"Indent error, the indent should only be multiple of 2 or 4")
-            )
-    
+            .add_message(f"Indent error, the indent should only be multiple of 2 or 4")
+        )
+
     # Attempt to parse the code into an AST. If it is not syntactically correct,
     # this will fail and return False.
     return get_ast(code_string)
@@ -93,8 +97,8 @@ def validate_answer(code_string: str) -> CheckResult:
         else:
             return (
                 CheckResult(True)
-                    .add_payload("correct_output", result.stdout.decode('utf-8'))
-                    .combine(answer_ast_result)
+                .add_payload("correct_output", result.stdout.decode('utf-8'))
+                .combine(answer_ast_result)
             )
     except Exception:
         return CheckResult(False).add_message("An exception occurred during answer execution")

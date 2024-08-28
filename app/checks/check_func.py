@@ -9,10 +9,16 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
     
     # Execute the response and answer code to set up the environment that the functions
     # expect, e.g. imports, global variables, etc.
-    response_context = {}
-    eval(response_code, response_context)
-    answer_context = {}
-    eval(answer_code, answer_context)
+    try:
+        response_context = {}
+        eval(response_code, response_context)
+        answer_context = {}
+        eval(answer_code, answer_context)
+    except Exception as e:
+        return (
+            CheckResult(False)
+            .add_message(f'Failed to evaluate response: {e}')
+        )
     
     # Check that both the response and the answer declare a function called [func_name],
     # and both take the same number of arguments
@@ -62,7 +68,12 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
     def equals_override(a, b):
         answer_context['_a'] = a
         answer_context['_b'] = b
-        return eval(f'equals(_a, _b)', answer_context)
+        result = None
+        try:
+            result = eval(f'equals(_a, _b)', answer_context)
+        except:
+            return False
+        return result
 
     if equals_func:
         if callable(equals_func):
@@ -85,8 +96,16 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
         answer_context['args'] = args
 
         # Evaluate the response function.
-        response_val = eval(expr, response_context)
-        answer_val = eval(expr, answer_context)
+        response_val = None
+        answer_val = None
+        try:
+            response_val = eval(expr, response_context)
+            answer_val = eval(expr, answer_context)
+        except Exception as e:
+            return (
+                CheckResult(False)
+                .add_message(f'Failed to evaluate response: {e}')
+            )
         
         if not equals(answer_val, response_val):
             return (

@@ -285,6 +285,73 @@ tests = [(randint(0, 10), randint(0, 10)) for _ in range(1000)]
         result = check_func(ast.parse(response), ast.parse(answer), "sum")
         self.assertTrue(result.passed())
 
+    def test_array_feedback(self):
+        from .format.variable_compare_format import get_array_feedback
+        from .format.variable_compare_format import WrongShape, WrongValue, WrongWhole
+        from .format import variable_compare_format
+        import numpy as np
+
+        # Set the max string size to a small value for testing
+        variable_compare_format.MAX_STRING_LEN = 10
+
+        # These arrays are equal, so Equal() should be returned
+        a = np.array([0, 1, 2, 3, 4])
+        b = np.array([0, 1, 2, 3, 4])
+        feedback = get_array_feedback(a, b)
+        match feedback:
+            case variable_compare_format.Equal:
+                pass
+            case other:
+                self.fail(other)
+        # These arrays are equal until index 3
+        a = np.array([0, 1, 2, 3, 4])
+        b = np.array([0, 1, 2, 4, 4])
+        feedback = get_array_feedback(a, b)
+        match feedback:
+            case WrongValue(i, r, a):
+                self.assertEqual(i, 3)
+                self.assertEqual(r, 4)
+                self.assertEqual(a, 3)
+            case other:
+                self.fail(other)
+        # These arrays are not equal, but they are shorter than MAX_STRING_LEN
+        a = np.array([0, 1, 2])
+        b = np.array([0, 1, 3])
+        feedback = get_array_feedback(a, b)
+        match feedback:
+            case variable_compare_format.WrongWhole:
+                pass
+            case other:
+                self.fail(other)
+        # These arrays have different shapes
+        a = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+        b = np.array([0, 1, 2, 3])
+        feedback = get_array_feedback(a, b)
+        match feedback:
+            case WrongShape(a, b):
+                self.assertEqual(a, (4, 2))
+                self.assertEqual(b, (4,))
+            case other:
+                self.fail(other)
+        # These arrays are multidimensional but equal
+        a = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+        b = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+        feedback = get_array_feedback(a, b)
+        match feedback:
+            case variable_compare_format.Equal:
+                pass
+            case other:
+                self.fail(other)
+        # These arrays are multidimensional but unequal
+        a = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+        b = np.array([[0, 0], [1, 1], [2, 2], [3, 2]])
+        feedback = get_array_feedback(a, b)
+        match feedback:
+            case variable_compare_format.WrongValueMultidimensional:
+                pass
+            case other:
+                self.fail(other)
+
 
 if __name__ == "__main__":
     unittest.main()

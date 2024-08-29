@@ -1,7 +1,10 @@
 import ast
 from inspect import signature
+import numpy as np
 
 from .check_result import CheckResult
+from ..format.variable_compare_format import get_array_feedback, WrongShape, WrongValue
+from ..format import variable_compare_format
 
 def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str) -> CheckResult:
     response_code = compile(response_ast, '<string>', 'exec')
@@ -107,10 +110,45 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
                 .add_message(f'Failed to evaluate response: {e}')
             )
         
-        if not equals(answer_val, response_val):
+        # The answer and response must be the same type
+        response_type = type(response_val)
+        answer_type = type(answer_val)
+        if response_type != answer_type:
+            return (
+                CheckResult(False)
+                .add_message(f'The types do not match: your function returned a "{response_type}", but a "{answer_type}" was required.')
+            )
+
+        # Special case if the value is an array
+        if response_type == list or response_type == np.ndarray:
+            match get_array_feedback(response_val, answer_val):
+                case WrongValue(i, correct, actual):
+                    return (
+                        CheckResult(False)
+                        .add_message(f'There is an incorrect value at index {i}: Expected {correct}, got {actual}')
+                    )
+                case WrongShape(res_shape, ans_shape):
+                    return (
+                        CheckResult(False)
+                        .add_message(f'Your array has the wrong shape: Expected {ans_shape}, got {res_shape}')
+                    )
+                case variable_compare_format.WrongValueMultidimensional:
+                    return (
+                        CheckResult(False)
+                        .add_message('The multi-dimensional array returned has the correct shape, but a wrong value somewhere')
+                    )
+                case variable_compare_format.WrongWhole:
+                    return (
+                        CheckResult(False)
+                        .add_message(f'Your array is incorrect: Expected f{answer_val}, got f{response_val}')
+                    )
+                case variable_compare_format.Equal:
+                    pass
+
+        elif not equals(answer_val, response_val):
             return (
                 CheckResult(False)
                 .add_message(f'wanted {answer_val}, got {response_val}')
             )
-
+        
     return CheckResult(True)

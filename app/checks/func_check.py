@@ -6,10 +6,11 @@ from .check_result import CheckResult
 from ..format.variable_compare_format import get_array_feedback, WrongShape, WrongValue
 from ..format import variable_compare_format
 
+
 def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str) -> CheckResult:
     response_code = compile(response_ast, '<string>', 'exec')
     answer_code = compile(answer_ast, '<string>', 'exec')
-    
+
     # Execute the response and answer code to set up the environment that the functions
     # expect, e.g. imports, global variables, etc.
     try:
@@ -22,7 +23,7 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
             CheckResult(False)
             .add_message(f'Failed to evaluate response: {e}')
         )
-    
+
     # Check that both the response and the answer declare a function called [func_name],
     # and both take the same number of arguments
     def func_exists(context):
@@ -33,6 +34,7 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
             return len(sig.parameters)
         else:
             return None
+
     num_response_args = func_exists(response_context)
     num_answer_args = func_exists(answer_context)
     if num_response_args == None:
@@ -68,6 +70,7 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
     # By default, this just uses '==', but can be overridden.
     equals = lambda a, b: a == b
     equals_func = answer_context.get('equals', None)
+
     def equals_override(a, b):
         answer_context['_a'] = a
         answer_context['_b'] = b

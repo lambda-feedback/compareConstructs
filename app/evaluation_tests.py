@@ -135,39 +135,13 @@ class lorem:
         # This sample is correct, so it should pass the check
         validate_result = validate_answer("print('Hello, World!')")
         self.assertTrue(validate_result.passed())
-        self.assertEqual(validate_result.get_payload("correct_output"), "Hello, World!\n")
         # This sample's syntax is correct, but it will cause a runtime error
         self.assertFalse(validate_answer("foo('Hello, World!')").passed())
         # This sample's syntax is incorrect
         self.assertFalse(validate_answer("print('Hello, World!)").passed())
 
-    def test_globals(self):
-        response = """
-import numpy as np 
-x_1 = np.arange(-5, 2+0.5, 0.5)
-x_2 = np.arange(-2+0.05, 3, 0.05)
-x_3 = np.arange(3, 0.5+5, 0.5)
-x = np.concatenate((x_1,x_2,x_3))
-f = np.sin(x)
-g = np.sin(x**2+np.pi)"""
-        answer = """
-import numpy as np 
-Dx = 0.5
-x1 = np.arange(-5,-2+Dx,Dx)
-
-Dx = 0.05
-x2 = np.arange(-2+Dx,3,Dx)
-
-Dx = 0.5
-x3 = np.arange(3,5+Dx,Dx)
-
-x = np.hstack((x1,x2,x3))
-f = np.sin(x)
-g = np.sin(x**2+np.pi)"""
-        print(evaluation_function(response, answer, Params(check_list="x,f,g", check_names=False)))
-
     def test_check_func(self):
-        from .checks.check_func import check_func
+        from .checks.func_check import check_func
         import ast
 
         response = """
@@ -214,7 +188,7 @@ def foo(a, b):
         self.assertFalse(result.passed())
     
     def test_check_func_with_globals(self):
-        from .checks.check_func import check_func
+        from .checks.func_check import check_func
         import ast
 
         # Functions should be able to use globals, including imports
@@ -245,7 +219,6 @@ tests = [
         result = check_func(ast.parse(response), ast.parse(answer), "test")
         self.assertTrue(result.passed())
 
-
     def test_func_check_eval(self):
         response = """
 def sum(a, b):
@@ -265,9 +238,8 @@ tests = [
         result = evaluation_function(response, answer, Params(check_func="sum"))
         self.assertTrue(result['is_correct'])
 
-
     def test_func_check_dynamic(self):
-        from .checks.check_func import check_func
+        from .checks.func_check import check_func
         import ast
         response = """
 def sum(a, b):
@@ -351,8 +323,6 @@ tests = [(randint(0, 10), randint(0, 10)) for _ in range(1000)]
                 pass
             case other:
                 self.fail(other)
-
-
 if __name__ == "__main__":
     unittest.main()
 

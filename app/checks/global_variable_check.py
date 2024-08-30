@@ -6,14 +6,8 @@ import numpy as np
 import io
 import contextlib
 
-try:
-    from .same_variable_content_check import check_same_content_with_different_variable
-except ImportError:
-    from same_variable_content_check import check_same_content_with_different_variable
-
-tolerance = 1e-8
-GLOBAL_ERR_VAR_CONTENT = []
-
+from .same_variable_content_check import check_same_content_with_different_variable
+from ..format.variable_compare_format import variable_content_compare
 
 # Function to execute the code and check the content of variables
 def variable_content(code_str, tree) -> (bool, dict):
@@ -48,115 +42,74 @@ def variable_content(code_str, tree) -> (bool, dict):
                   not isinstance(context.get(var), types.FunctionType) and context.get(var) is not None}
 
 
-def check_global_variable_content(response, answer, check_list: list, response_ast, answer_ast):
+def check_global_variable_content(response, answer, check_list: set, response_ast, answer_ast):
     """
-    Teacher should give a variable check-list for us due to the importance of the variables relying on the Teacher's goal
+    Teacher should give a variable check-list for us due to the
+    importance of the variables relying on the Teacher's goal
+    It will return the first error encountered
     """
-
-    global GLOBAL_ERR_VAR_CONTENT
 
     # get variable contents by executing the code
     is_res_exec, response_var_dict = variable_content(response, response_ast)
     is_ans_exec, answer_var_dict = variable_content(answer, answer_ast)
 
     if not is_ans_exec:
-        return False, f"The given answer is wrong:\n{answer_var_dict['err']}", check_list, response
+        return False, f"The given answer is wrong:\n{answer_var_dict['err']}"
 
     if not is_res_exec:
-        return False, response_var_dict['err'], check_list, response
+        return False, response_var_dict['err']
 
     # sometimes students give us different variable names, but we can figure out the difference
     response, response_var_dict = check_same_content_with_different_variable(
         response, response_var_dict, answer_var_dict, response_ast, answer_ast, check_list)
 
-    # get the same variables
+    # get the variable sets
     answer_var_set = answer_var_dict.keys()
     response_var_set = response_var_dict.keys()
     intersections = response_var_set & answer_var_set
-    error_var_contents = []
 
-    is_defined = True
-    remaining_check_list = copy.deepcopy(check_list)
+    # If the variables in checklist are not included in intersection, get wrong
+    # since any params in checklist should be declared with same value (could be different names)
+    if not check_list <= intersections:
+        remaining_variables = check_list - (check_list & intersections)
+        if len(remaining_variables) == 1:
+            feedback = f"The variable '{remaining_variables.pop()}' " \
+                       f"is not defined or different value respect to the answer"
+        else:
+            feedback = f"""The variables '{"', '".join(list(remaining_variables))}' are not defined """ \
+                       f"or different values respect to the answer"
+        return False, feedback
 
     for var in check_list:
-        # sometimes execute the code doesn't change the variable value i.e. local variable in a method
-        if var in intersections:
+        if answer_var_dict[var] is not None:
+            is_correct, feedback = is_equal(
+                var, response_var_dict[var], answer_var_dict[var])
+            if not is_correct:
+                return is_correct, feedback
 
-            if answer_var_dict[var] is not None:
-                is_correct, msg, error_var_contents, remaining_check_list = is_equal(
-                    var, response_var_dict[var], answer_var_dict[var], error_var_contents,
-                    remaining_check_list
-                )
-                if not is_correct:
-                    GLOBAL_ERR_VAR_CONTENT = error_var_contents
-                    return False, msg, remaining_check_list, response
-            else:
-                is_defined = False
-
-    # TMP is used for local variable checks
-    if "TMP" in remaining_check_list:
-        remaining_check_list.remove("TMP")
-        if len(remaining_check_list) == 0:
-            return True, "", remaining_check_list, response
-        if "TMP" in error_var_contents:
-            error_var_contents.remove("TMP")
-            return False, "The return value is not the same as the given answer", remaining_check_list, response
-        if "TMP" in intersections:
-            return True, "", remaining_check_list, response
-        else:
-            if "TMP" in answer_var_set:
-                return False, "The return statement is lacking", remaining_check_list, response
-            elif "TMP" in response_var_set:
-                return False, "The return statement is redundant", remaining_check_list, response
-
-    # error_contents occur when student provides the same answer but
-    if len(error_var_contents) == 0:
-        if is_defined:
-            return True, "", remaining_check_list, response
-        else:
-            return True, "NotDefined", remaining_check_list, response
-    else:
-        feedback = ""
-        if 0 < len(error_var_contents) < 2:
-            feedback += f"""The value of '{"', '".join(error_var_contents)}' is not correct respect to the answer\n"""
-        elif len(error_var_contents) >= 2:
-            feedback += f"""The values of '{"', '".join(error_var_contents)}' are not correct respect to the answer\n"""
-
-        GLOBAL_ERR_VAR_CONTENT = error_var_contents
-        return False, feedback, remaining_check_list, response
+    return True, ""
 
 
-def get_err_vars():
-    return GLOBAL_ERR_VAR_CONTENT
-
-
-def is_equal(variable_name, response_variable_content, answer_variable_content, error_var_contents,
-             remaining_check_list):
+def is_equal(variable_name, response_variable_content, answer_variable_content):
     # TODO: add other equivalent relation:
-    #  Notice that the return type contains: (is_correct, feedback, error_var, remaining_check_list)
     if type(response_variable_content) != type(answer_variable_content):
-        error_var_contents.append(variable_name)
-        return False, f"The type of '{variable_name}' is not correct. Expected: {type(answer_variable_content).__name__}", \
-            error_var_contents, remaining_check_list
+        return False, f"The type of '{variable_name}' is not correct. " \
+                      f"Expected: {type(answer_variable_content).__name__}"
 
     if isinstance(answer_variable_content, np.ndarray):
         try:
             is_correct = np.allclose(response_variable_content, answer_variable_content)
         except Exception as e:
-            return False, f"{type(e).__name__} of '{variable_name}': {e}", error_var_contents, remaining_check_list
-
-
+            return False, f"{type(e).__name__} of '{variable_name}': {e}"
     else:
         try:
             is_correct = response_variable_content == answer_variable_content
         except Exception as e:
-            return False, f"{type(e).__name__} of '{variable_name}': {e}", error_var_contents, remaining_check_list
+            return False, f"{type(e).__name__} of '{variable_name}': {e}"
 
     if is_correct:
-        remaining_check_list.remove(variable_name)
-        return True, "", error_var_contents, remaining_check_list
-
+        return True, ""
     else:
-        # the error message will be checked later
-        error_var_contents.append(variable_name)
-        return True, "", error_var_contents, remaining_check_list
+        feedback = variable_content_compare(variable_name, response_variable_content, answer_variable_content)
+        return False, feedback
+

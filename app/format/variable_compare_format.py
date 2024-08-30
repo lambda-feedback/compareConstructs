@@ -26,6 +26,7 @@ class WrongValue:
     required_value: any
     actual_value: any
 
+@dataclass
 class WrongValueMultidimensional:
     error_index: tuple
     required_value: any
@@ -64,7 +65,7 @@ def get_array_feedback(response_array, answer_array) -> ArrayFeedback:
             else:
                 differences = get_array_differences_multi(answer_array, response_array)
                 error_idx = differences[0]
-                WrongValueMultidimensional(error_idx, answer_array[error_idx], response_array[error_idx])
+                return WrongValueMultidimensional(error_idx, answer_array[error_idx], response_array[error_idx])
 
     diffs = get_array_differences(answer_array, response_array);
 

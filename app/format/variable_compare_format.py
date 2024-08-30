@@ -1,6 +1,7 @@
 import difflib
 import numpy as np
 from dataclasses import dataclass
+from typing import Union
 
 import sys
 this = sys.modules[__name__]
@@ -34,7 +35,7 @@ class WrongWhole:
 class Equal:
     pass
 
-ArrayFeedback = WrongShape | WrongValue | WrongValueMultidimensional | WrongWhole | Equal
+ArrayFeedback = Union[WrongShape, WrongValue, WrongValueMultidimensional, WrongWhole, Equal]
 
 MAX_STRING_LEN = 30
 
@@ -57,10 +58,10 @@ def get_array_feedback(response_array, answer_array) -> ArrayFeedback:
             return WrongShape(response_shape, answer_shape)
         elif len(response_shape) != 1:
             if np.allclose(response_array, answer_array):
-                return Equal
+                return Equal()
             else:
                 #TODO: Better handling of incorrect multidimensional arrays 
-                return WrongValueMultidimensional
+                return WrongValueMultidimensional()
 
     diffs = get_array_differences(answer_array, response_array);
 
@@ -68,10 +69,10 @@ def get_array_feedback(response_array, answer_array) -> ArrayFeedback:
         return WrongShape((len(response_array),), (len(answer_array),))
 
     if len(diffs) == 0:
-        return Equal
+        return Equal()
 
     if len(answer_string) <= MAX_STRING_LEN and len(response_string) <= MAX_STRING_LEN:
-        return WrongWhole
+        return WrongWhole()
 
     return WrongValue(diffs[0], answer_array[diffs[0]], response_array[diffs[0]])
 
@@ -90,17 +91,17 @@ def variable_content_compare(variable_name, res_content, ans_content):
                 return ''
 
     elif isinstance(ans_content, list) or isinstance(ans_content, np.ndarray):
-        match get_array_feedback(res_content, ans_content):
-            case WrongShape(res_shape, ans_shape):
-                return f"The shape of '{variable_name}' is: {res_shape}\nExpected: {ans_shape}"
-            case WrongValue(idx, correct, actual):
-                f"The value of '{variable_name}' at index {idx} is: {actual}\nExpected: {correct}"
-            case this.WrongValueMultidimensional:
-                f"There is an incorrect value in your multidimensional array."
-            case this.WrongWhole:
-                return general_feedback
-            case this.Equal:
-                return ""
+        feedback = get_array_feedback(res_content, ans_content)
+        if isinstance(feedback, WrongShape):
+            return f"The shape of '{variable_name}' is: {feedback.response_shape}\nExpected: {feedback.answer_shape}"
+        elif isinstance(feedback, WrongValue):
+                f"The value of '{variable_name}' at index {feedback.error_index} is: {feedback.actual_value}\nExpected: {feedback.required_value}"
+        elif isinstance(feedback, WrongValueMultidimensional):
+            f"There is an incorrect value in your multidimensional array."
+        elif isinstance(feedback, WrongWhole):
+            return general_feedback
+        elif isinstance(feedback, Equal):
+            return ""
 
     else:
         return general_feedback

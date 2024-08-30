@@ -27,7 +27,9 @@ class WrongValue:
     actual_value: any
 
 class WrongValueMultidimensional:
-    pass
+    error_index: tuple
+    required_value: any
+    actual_value: any
 
 class WrongWhole:
     pass
@@ -60,8 +62,9 @@ def get_array_feedback(response_array, answer_array) -> ArrayFeedback:
             if np.allclose(response_array, answer_array):
                 return Equal()
             else:
-                #TODO: Better handling of incorrect multidimensional arrays 
-                return WrongValueMultidimensional()
+                differences = get_array_differences_multi(answer_array, response_array)
+                error_idx = differences[0]
+                WrongValueMultidimensional(error_idx, answer_array[error_idx], response_array[error_idx])
 
     diffs = get_array_differences(answer_array, response_array);
 
@@ -153,3 +156,12 @@ def get_array_differences(a, b) -> list:
     WARNING: only works correctly for single-dimensional arrays
     """
     return [index for index, (e1, e2) in enumerate(zip(a, b)) if not np.isclose(e1, e2)]
+
+
+def get_array_differences_multi(a: np.ndarray, b: np.ndarray) -> list:
+    """Like `get_array_differences`, but works on multidimensional arrays of any dimension.
+    WARNING: it is assumed that a and b have the same shape.
+    """
+    assert np.shape(a) == np.shape(b)
+    differences = np.nonzero((~np.isclose(a, b)).astype(int))
+    return list(zip(*differences))

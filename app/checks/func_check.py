@@ -137,7 +137,7 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
             elif isinstance(f, WrongValueMultidimensional):
                 return (
                     CheckResult(False)
-                    .add_message('The multi-dimensional array returned has the correct shape, but a wrong value somewhere')
+                    .add_message(f'The multi-dimensional array returned has the correct shape, but an incorrect value at {f.error_index}.\n')
                 )
             elif isinstance(f, WrongWhole):
                 return (

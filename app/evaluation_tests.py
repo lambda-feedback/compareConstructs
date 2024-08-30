@@ -140,31 +140,6 @@ class lorem:
         # This sample's syntax is incorrect
         self.assertFalse(validate_answer("print('Hello, World!)").passed())
 
-    def test_globals(self):
-        response = """
-import numpy as np 
-x_1 = np.arange(-5, 2+0.5, 0.5)
-x_2 = np.arange(-2+0.05, 3, 0.05)
-x_3 = np.arange(3, 0.5+5, 0.5)
-x = np.concatenate((x_1,x_2,x_3))
-f = np.sin(x)
-g = np.sin(x**2+np.pi)"""
-        answer = """
-import numpy as np 
-Dx = 0.5
-x1 = np.arange(-5,-2+Dx,Dx)
-
-Dx = 0.05
-x2 = np.arange(-2+Dx,3,Dx)
-
-Dx = 0.5
-x3 = np.arange(3,5+Dx,Dx)
-
-x = np.hstack((x1,x2,x3))
-f = np.sin(x)
-g = np.sin(x**2+np.pi)"""
-        print(evaluation_function(response, answer, Params(check_list="x,f,g", check_names=False)))
-
     def test_check_func(self):
         from .checks.func_check import check_func
         import ast
@@ -243,6 +218,25 @@ tests = [
         # All the test cases should pass, so this should return True
         result = check_func(ast.parse(response), ast.parse(answer), "test")
         self.assertTrue(result.passed())
+
+    def test_func_check_eval(self):
+        response = """
+def sum(a, b):
+    return a - (-b)
+"""
+        answer = """
+def sum(a, b):
+    return a + b
+
+tests = [
+    (0, 0),
+    (1, 1),
+    (100, 165),
+    (730, 21),
+]
+"""
+        result = evaluation_function(response, answer, Params(check_func="sum"))
+        self.assertTrue(result['is_correct'])
 
 if __name__ == "__main__":
     unittest.main()

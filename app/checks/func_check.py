@@ -34,12 +34,12 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
 
     num_response_args = func_exists(response_context)
     num_answer_args = func_exists(answer_context)
-    if not num_response_args:
+    if num_response_args == None:
         return (
             CheckResult(False)
             .add_message(f'Did you declare a function called "{func_name}"?')
         )
-    if not num_answer_args:
+    if num_answer_args == None:
         return (
             CheckResult(False)
             .add_message(f'The answer does not declare a function called "{func_name}". Please contact your teacher.')

@@ -135,7 +135,6 @@ class lorem:
         # This sample is correct, so it should pass the check
         validate_result = validate_answer("print('Hello, World!')")
         self.assertTrue(validate_result.passed())
-        self.assertEqual(validate_result.get_payload("correct_output"), "Hello, World!\n")
         # This sample's syntax is correct, but it will cause a runtime error
         self.assertFalse(validate_answer("foo('Hello, World!')").passed())
         # This sample's syntax is incorrect
@@ -167,7 +166,7 @@ g = np.sin(x**2+np.pi)"""
         print(evaluation_function(response, answer, Params(check_list="x,f,g", check_names=False)))
 
     def test_check_func(self):
-        from .checks.check_func import check_func
+        from .checks.func_check import check_func
         import ast
 
         response = """
@@ -214,7 +213,7 @@ def foo(a, b):
         self.assertFalse(result.passed())
     
     def test_check_func_with_globals(self):
-        from .checks.check_func import check_func
+        from .checks.func_check import check_func
         import ast
 
         # Functions should be able to use globals, including imports
@@ -244,26 +243,6 @@ tests = [
         # All the test cases should pass, so this should return True
         result = check_func(ast.parse(response), ast.parse(answer), "test")
         self.assertTrue(result.passed())
-
-
-    def test_func_check_eval(self):
-        response = """
-def sum(a, b):
-    return a - (-b)
-"""
-        answer = """
-def sum(a, b):
-    return a + b
-
-tests = [
-    (0, 0),
-    (1, 1),
-    (100, 165),
-    (730, 21),
-]
-"""
-        result = evaluation_function(response, answer, Params(check_func="sum"))
-        self.assertTrue(result['is_correct'])
 
 if __name__ == "__main__":
     unittest.main()

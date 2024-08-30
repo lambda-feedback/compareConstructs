@@ -1,23 +1,21 @@
 import random
-from typing import Any, TypedDict
+from typing import Any, TypedDict, Union
 
 from .format.output_traceback_format import output_diffs
-from .format.variable_compare_format import variables_content_compare
 from .format.general_format import ai_content_format, markdown_format
 from .checks.ai_prompt_check import ai_check
-from .checks.global_variable_check import check_global_variable_content, get_err_vars, variable_content
-from .checks.local_variable_check import check_local_variable_content, extract_modules
+from .checks.global_variable_check import check_global_variable_content
 from .checks.general_check import check_style, validate_answer
 from .checks.structure_check import check_structure
-from .checks.check_func import check_func
+from .checks.func_check import check_func
 import subprocess
 
 
 class Params(TypedDict):
-    # TODO it will be list after the website updates
-    check_list: Any
+    global_variable_check_list: Union[str, list]
     check_names: bool
     check_func: str
+    local_variable_check_list_in_method: dict
 
 
 class Result(TypedDict):
@@ -26,9 +24,10 @@ class Result(TypedDict):
 
 
 def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
-    check_list = params.get('check_list', [])
+    check_list = params.get('global_variable_check_list', [])
     if isinstance(check_list, str):
-        check_list = [var.strip() for var in check_list.split(',') if len(var.strip()) > 0]
+        # check list is a set as the repeated variable name is not accepted
+        check_list = {var.strip() for var in check_list.split(',') if len(var.strip()) > 0}
 
     check_list_defined = len(check_list) != 0
 
@@ -85,25 +84,23 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
 
     # if the checklist is not given, it is meaningless to check the variables, then we will call for AI
     if check_list_defined:
-        is_correct, feedback, remaining_check_list, response = check_global_variable_content(
+        local_check_dict = params.get('local_variable_check_list_in_method', dict())
+        is_correct, feedback = check_global_variable_content(
             response, answer, check_list, response_ast, answer_ast)
-        _, res_var_dict = extract_modules(variable_content(response, response_ast)[1])
-        _, ans_var_dict = extract_modules(variable_content(answer, answer_ast)[1])
         if not is_correct:
-            variable_list = get_err_vars()
-
-            diff = variables_content_compare(variable_list, res_var_dict, ans_var_dict)
-            return Result(is_correct=False, feedback=markdown_format(f"{feedback}\n{diff}"))
+            return Result(is_correct=False, feedback=markdown_format(feedback))
         else:
-            if len(remaining_check_list) == 0:
+            if not local_check_dict:
                 return Result(is_correct=True, feedback=correct_feedback)
-            is_correct, feedback = check_local_variable_content(
-                response, answer, res_var_dict, ans_var_dict, remaining_check_list, response_ast, answer_ast)
-            if is_correct:
-                if feedback != "NotDefined":
-                    return Result(is_correct=True, feedback=correct_feedback)
-            else:
-                return Result(is_correct=False, feedback=markdown_format(feedback))
+            # if len(remaining_check_list) == 0:
+            #     return Result(is_correct=True, feedback=correct_feedback)
+            # is_correct, feedback = check_local_variable_content(
+            #     response, answer, res_var_dict, ans_var_dict, remaining_check_list, response_ast, answer_ast)
+            # if is_correct:
+            #     if feedback != "NotDefined":
+            #         return Result(is_correct=True, feedback=correct_feedback)
+            # else:
+            #     return Result(is_correct=False, feedback=markdown_format(feedback))
 
     result = ai_feedback(response, answer)
     feedback = result[

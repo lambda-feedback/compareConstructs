@@ -5,7 +5,7 @@ import copy
 
 
 def check_same_content_with_different_variable(response, response_var_dict: dict, answer_var_dict: dict,
-                                               res_ast, ans_ast, check_list: list,  mode=''):
+                                               res_ast, ans_ast, check_list: set,  mode=''):
     """
     The method is called when students input different variable names with the same content,
     and we try to figure the similarities and replace the response to the desired (same) variable names for checklist

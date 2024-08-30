@@ -1,5 +1,8 @@
 import unittest
 
+import sys
+assert sys.version_info >= (3, 10)
+
 try:
     from .evaluation import Params, evaluation_function
 except ImportError:

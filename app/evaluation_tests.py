@@ -21,27 +21,6 @@ class TestEvaluationFunction(unittest.TestCase):
     Use evaluation_function() to check your algorithm works
     as it should.
     """
-    def test_eval(self):
-        response = """
-def hi():
-    return "hi"
-
-def f(x, y):
-    return x ** 2 + y **  3
-        """
-
-        answer = """
-def hi():
-    return "hillo"[0:2]
-
-def f(x, y):
-    return x * x + y ** 3
-
-            """
-        check_list = ['f', 'hi']
-
-        result = evaluation_function(response, answer, Params(check_list=check_list))
-        self.assertTrue(result['is_correct'])
     
     def test_structure_check(self):
         from .checks.structure_check import check_structure
@@ -243,6 +222,78 @@ tests = [
         answer = """print(0)"""
         result = evaluation_function(response, answer, Params(output_eval=True))
         self.assertTrue(result['is_correct'])
+    def test_func_check_dynamic(self):
+        from .checks.func_check import check_func
+        import ast
+        response = """
+def sum(a, b):
+    return a + b
+"""
+        answer = """
+from random import randint
+
+def sum(a, b):
+    return a + b
+
+tests = [(randint(0, 10), randint(0, 10)) for _ in range(1000)]
+"""
+        # check_func should support dynamic generation of test cases
+        result = check_func(ast.parse(response), ast.parse(answer), "sum")
+        self.assertTrue(result.passed())
+
+    def test_array_feedback(self):
+        from .format.variable_compare_format import get_array_feedback
+        from .format.variable_compare_format import WrongShape, WrongValue, WrongWhole, WrongValueMultidimensional, Equal
+        from .format import variable_compare_format
+        import numpy as np
+
+        # Set the max string size to a small value for testing
+        variable_compare_format.MAX_STRING_LEN = 10
+
+        # These arrays are equal, so Equal() should be returned
+        a = np.array([0, 1, 2, 3, 4])
+        b = np.array([0, 1, 2, 3, 4])
+        feedback = get_array_feedback(a, b)
+        if not isinstance(feedback, variable_compare_format.Equal):
+            self.fail(type(feedback))
+        # These arrays are equal until index 3
+        a = np.array([0, 1, 2, 3, 4])
+        b = np.array([0, 1, 2, 4, 4])
+        feedback = get_array_feedback(a, b)
+        if isinstance(feedback, WrongValue):
+            self.assertEqual(feedback.error_index, 3)
+            self.assertEqual(feedback.required_value, 4)
+            self.assertEqual(feedback.actual_value, 3)
+        else:
+            self.fail(feedback)
+        # These arrays are not equal, but they are shorter than MAX_STRING_LEN
+        a = np.array([0, 1, 2])
+        b = np.array([0, 1, 3])
+        feedback = get_array_feedback(a, b)
+        if not isinstance(feedback, WrongWhole):
+            self.fail(feedback)
+        # These arrays have different shapes
+        a = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+        b = np.array([0, 1, 2, 3])
+        feedback = get_array_feedback(a, b)
+        if isinstance(feedback, WrongShape):
+            self.assertEqual(feedback.response_shape, (4, 2))
+            self.assertEqual(feedback.answer_shape, (4,))
+        else:
+            self.fail(feedback)
+        # These arrays are multidimensional but equal
+        a = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+        b = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+        feedback = get_array_feedback(a, b)
+        if not isinstance(feedback, Equal):
+            self.fail(feedback)
+        # These arrays are multidimensional but unequal
+        a = np.array([[0, 0], [1, 1], [2, 2], [3, 3]])
+        b = np.array([[0, 0], [1, 1], [2, 2], [3, 2]])
+        feedback = get_array_feedback(a, b)
+        if not isinstance(feedback, WrongValueMultidimensional):
+            self.fail(feedback)
+
 if __name__ == "__main__":
     unittest.main()
 

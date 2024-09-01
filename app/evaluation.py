@@ -1,6 +1,7 @@
 import random
 from typing import Any, TypedDict, Union
 
+from .checks.output_check import check_answer_with_output
 from .format.output_traceback_format import output_diffs
 from .format.general_format import ai_content_format, markdown_format
 from .checks.ai_prompt_check import ai_check
@@ -16,7 +17,7 @@ class Params(TypedDict):
     check_names: bool
     check_func: str
     local_variable_check_list_in_method: dict
-
+    output_eval: bool
 
 class Result(TypedDict):
     is_correct: bool
@@ -71,10 +72,12 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
 
     # Did the answer print anything to stdout?
     if correct_output:
-        is_correct, res_msg = check_answer_with_output(response, correct_output)
+        is_output_eval = params.get('output_eval', False)
+        is_correct, res_msg = check_answer_with_output(response, correct_output, is_output_eval)
         if not is_correct and not check_list_defined:
             # if check_list != 0, it means that output is not the importance
             error_feedback = "The output is different to given answer: \n"
+
             diff = output_diffs(res_msg, correct_output)
             return Result(is_correct=False, feedback=markdown_format(error_feedback + diff))
         else:
@@ -108,21 +111,6 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     return Result(is_correct=result['Bool'], feedback=markdown_format(feedback))
 
 
-def check_answer_with_output(response, correct_output):
-    """
-    The function is called iff the answer is unique. i.e. aList = [1,2,3,4,5] is the unique answer
-    Notice that styles (at least they can pass general check) are NOT sensitive
-    """
-    res_feedback = ""
-    try:
-        response_output = subprocess.run(['python', '-c', response], capture_output=True, text=True)
-        if response_output.returncode != 0:
-            res_feedback = f"Error: {response_output.stderr.strip()}"
-        else:
-            res_feedback = response_output.stdout.strip()
-    except Exception as e:
-        res_feedback = f"Exception"
-    return check_each_letter(res_feedback, correct_output), res_feedback
 
 
 def check_each_letter(response, answer):

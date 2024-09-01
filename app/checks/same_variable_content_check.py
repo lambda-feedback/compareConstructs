@@ -1,11 +1,10 @@
 import ast
 import astor
 import numpy as np
-import copy
 
 
 def check_same_content_with_different_variable(response, response_var_dict: dict, answer_var_dict: dict,
-                                               res_ast, ans_ast, check_list: set,  mode=''):
+                                               res_ast, ans_ast, check_list: set, mode=''):
     """
     The method is called when students input different variable names with the same content,
     and we try to figure the similarities and replace the response to the desired (same) variable names for checklist
@@ -47,9 +46,6 @@ def check_same_content_with_different_variable(response, response_var_dict: dict
     return response, response_var_dict
 
 
-
-
-
 def replace_variable_in_code(old_name, new_name, tree):
     class VariableRenamer(ast.NodeTransformer):
         def __init__(self, old_name, new_name):
@@ -61,6 +57,7 @@ def replace_variable_in_code(old_name, new_name, tree):
             if isinstance(node.ctx, (ast.Store, ast.Load)) and node.id == self.old_name:
                 node.id = self.new_name
             return node
+
     renamer = VariableRenamer(old_name, new_name)
     tree = renamer.visit(tree)
     ast.fix_missing_locations(tree)
@@ -93,4 +90,3 @@ def replace_keys(original_dict, replacement_dict):
     new_dict = {value_to_new_key.get(v, k): v for k, v in original_dict.items()}
 
     return new_dict
-

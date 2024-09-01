@@ -238,6 +238,11 @@ tests = [
         result = evaluation_function(response, answer, Params(check_func="sum"))
         self.assertTrue(result['is_correct'])
 
+    def test_output(self):
+        response = """print(0.0)"""
+        answer = """print(0)"""
+        result = evaluation_function(response, answer, Params(output_eval=True))
+        self.assertTrue(result['is_correct'])
 if __name__ == "__main__":
     unittest.main()
 

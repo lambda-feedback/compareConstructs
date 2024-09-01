@@ -1,7 +1,6 @@
 import ast
 import builtins
 import types
-import copy
 import numpy as np
 import io
 import contextlib
@@ -69,7 +68,7 @@ def check_global_variable_content(response, answer, check_list: set, response_as
     intersections = response_var_set & answer_var_set
 
     # If the variables in checklist are not included in intersection, get wrong
-    # since any params in checklist should be declared with same value (could be different names)
+    # any params in checklist should be declared with same value (could be different names)
     if not check_list <= intersections:
         remaining_variables = check_list - (check_list & intersections)
         if len(remaining_variables) == 1:

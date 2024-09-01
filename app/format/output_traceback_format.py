@@ -1,14 +1,34 @@
 def output_diffs(res_msg, ans_msg):
-    res_lines = res_msg.split('\n')
-    ans_lines = ans_msg.split('\n')
-    if len(res_lines) < 10 and len(ans_lines) < 10 and len(res_msg) < 100 and len(ans_msg) < 100:
-        return f"Response:\n{res_msg}\nAnswer:\n{ans_msg}"
+    res_lines = [res_line.strip() for res_line in res_msg.split('\n')]
+    ans_lines = [ans_line.strip() for ans_line in ans_msg.split('\n')]
+    min_len = min(len(res_lines), len(ans_lines))
+    for i in range(min_len):
+        diff_idx = find_difference_index(res_lines[i], ans_lines[i])
+        if diff_idx != -1:
+            res_around_diff = '\n'.join(res_lines[max(0, i - 5):min(i + 5, min_len)])
+            ans_around_diff = '\n'.join(ans_lines[max(0, i - 5):min(i + 5, min_len)])
+            return f"Difference occurs in line {i} after index {diff_idx}:\nResponse:\n{res_around_diff}\n" \
+                   f"Expected:\n{ans_around_diff}"
+
+    if min_len == len(res_lines):
+        ans_after_diff = '\n'.join(ans_lines[min_len:min(min_len + 5, len(ans_lines))])
+        return f"Answer includes your response but not the same:\nAfter line {min_len}, " \
+               f"Expected:\n{ans_after_diff}"
     else:
-        min_len = min(len(res_msg), len(ans_msg))
-        for i in range(min_len):
-            if res_msg[i] != ans_msg[i]:
-                return f"Difference at index {i} is '{res_msg[max(0, i - 10):min(i + 10, min_len)]}'"
-        return "Strings are identical" if len(res_msg) == len(ans_msg) else \
-            f"Difference starts at index {min_len}:\nResponse after index {min_len}:\n" \
-            f"{res_msg[max(0, min_len - 5): min(len(res_msg), min_len + 5)]}\n" \
-            f"Answer after index {min_len}:\n{ans_msg[max(0, min_len - 5): min(len(ans_msg), min_len + 5)]}"
+        res_after_diff = '\n'.join(res_lines[min_len:min(min_len + 5, len(res_lines))])
+        return f"Your response includes answer but not the same:\nAfter line {min_len}, " \
+               f"the response should be deleted:\n" \
+               f"{res_after_diff}"
+
+
+def find_difference_index(str1, str2):
+    min_len = min(len(str1), len(str2))
+
+    for i in range(min_len):
+        if str1[i] != str2[i]:
+            return i
+
+    if len(str1) != len(str2):
+        return min_len
+
+    return -1

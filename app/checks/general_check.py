@@ -97,7 +97,7 @@ def validate_answer(code_string: str) -> CheckResult:
         else:
             return (
                 CheckResult(True)
-                .add_payload("correct_output", result.stdout.decode('utf-8'))
+                .add_payload("correct_output", result.stdout.decode('utf-8').strip())
                 .combine(answer_ast_result)
             )
     except Exception:

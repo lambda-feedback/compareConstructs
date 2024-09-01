@@ -27,6 +27,7 @@ COPY checks/same_variable_content_check.py ./app/checks/
 COPY checks/ai_prompt_check.py ./app/checks/
 COPY checks/check_result.py ./app/checks/
 COPY checks/func_check.py ./app/checks/
+COPY checks/output_check.py ./app/checks/
 
 COPY preview.py ./app/
 COPY preview_tests.py ./app/

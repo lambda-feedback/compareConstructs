@@ -1,5 +1,5 @@
 import subprocess
-
+import numpy as np
 
 def check_answer_with_output(response, correct_output, is_output_eval):
     """
@@ -27,7 +27,7 @@ def is_different(res_output, correct_output, is_output_eval):
             res_line = res_output_lines[i].strip()
             ans_line = correct_output_lines[i].strip()
             try:
-                is_equal = complex(res_line) == complex(ans_line)
+                is_equal = np.isclose(complex(res_line), complex(ans_line))
                 if not is_equal:
                     return False
             except ValueError:

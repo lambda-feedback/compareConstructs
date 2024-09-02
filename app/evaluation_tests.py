@@ -218,10 +218,16 @@ tests = [
         self.assertTrue(result['is_correct'])
 
     def test_output(self):
-        response = """print(0.0)"""
-        answer = """print(0)"""
+        response = "print(0.0)"
+        answer = "print(0)"
         result = evaluation_function(response, answer, Params(output_eval=True))
         self.assertTrue(result['is_correct'])
+
+        response = "print(-0.4597640704689031)"
+        answer = "print(-0.45976407046890333)"
+        result = evaluation_function(response, answer, Params(output_eval=True))
+        self.assertTrue(result['is_correct'])
+
     def test_func_check_dynamic(self):
         from .checks.func_check import check_func
         import ast

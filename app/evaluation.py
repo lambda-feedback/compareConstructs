@@ -72,7 +72,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
 
     # Did the answer print anything to stdout?
     if correct_output:
-        is_output_eval = params.get('output_eval', False)
+        is_output_eval = params.get('output_eval', True)
         is_correct, res_msg = check_answer_with_output(response, correct_output, is_output_eval)
         if not is_correct and not check_list_defined:
             # if check_list != 0, it means that output is not the importance

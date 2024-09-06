@@ -100,5 +100,5 @@ def validate_answer(code_string: str) -> CheckResult:
                 .add_payload("correct_output", result.stdout.decode('utf-8').strip())
                 .combine(answer_ast_result)
             )
-    except Exception:
-        return CheckResult(False).add_message("An exception occurred during answer execution")
+    except Exception as e:
+        return CheckResult(False).add_message(f"An exception occurred during answer execution: {e}")

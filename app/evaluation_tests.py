@@ -314,16 +314,19 @@ tests = [(randint(0, 10), randint(0, 10)) for _ in range(1000)]
         self.assertTrue(result.passed())
 
         # Multiple variables
-        answer = ast.parse("""
+        answer = """
 test1 = 42
 test2 = "Hello!"
-""")
-        response = ast.parse("""
+"""
+        response = """
 test1 = 41 + 1
 test2 = "He" + "llo!"
-""")
-        result = check_global_variable_content(response, answer, {"test1", "test2"})
+"""
+        result = check_global_variable_content(ast.parse(response), ast.parse(answer), {"test1", "test2"})
         self.assertTrue(result.passed())
+        # Should also work when invoked through evaluation_function
+        result = evaluation_function(response, answer, {"global_variable_check_list": ["test1", "test2"]})
+        self.assertTrue(result["is_correct"])
 
 if __name__ == "__main__":
     unittest.main()

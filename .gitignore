@@ -134,3 +134,6 @@ dmypy.json
 
 # add .env file
 app/.env
+
+# TODOs
+TODO

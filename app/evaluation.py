@@ -25,7 +25,7 @@ class Result(TypedDict):
 
 
 def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
-    check_list = params.get('global_variable_check_list', [])
+    check_list = set(params.get('global_variable_check_list', {}))
     if isinstance(check_list, str):
         # check list is a set as the repeated variable name is not accepted
         check_list = {var.strip() for var in check_list.split(',') if len(var.strip()) > 0}
@@ -88,8 +88,7 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     # if the checklist is not given, it is meaningless to check the variables, then we will call for AI
     if check_list_defined:
         local_check_dict = params.get('local_variable_check_list_in_method', dict())
-        is_correct, feedback = check_global_variable_content(
-            response, answer, check_list, response_ast, answer_ast)
+        is_correct, feedback = check_global_variable_content(response_ast, answer_ast, check_list)
         if not is_correct:
             return Result(is_correct=False, feedback=markdown_format(feedback))
         else:

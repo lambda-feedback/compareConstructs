@@ -299,8 +299,31 @@ tests = [(randint(0, 10), randint(0, 10)) for _ in range(1000)]
         feedback = get_array_feedback(a, b)
         if not isinstance(feedback, WrongValueMultidimensional):
             self.fail(feedback)
+    
+    def test_global_var_check(self):
+        import ast
+        from .checks.global_variable_check import check_global_variable_content
+        # The simplest case of only one global variable
+        answer = ast.parse("""Lambda = 'Feedback'""")
+        response = ast.parse("Lambda = 'Fedback'")
+        result = check_global_variable_content(response, answer, {"Lambda"})
+        self.assertFalse(result.passed())
+        answer = ast.parse("""Lambda = 'Feedback'""")
+        response = ast.parse("Lambda = 'Feedback'")
+        result = check_global_variable_content(response, answer, {"Lambda"})
+        self.assertTrue(result.passed())
+
+        # Multiple variables
+        answer = ast.parse("""
+test1 = 42
+test2 = "Hello!"
+""")
+        response = ast.parse("""
+test1 = 41 + 1
+test2 = "He" + "llo!"
+""")
+        result = check_global_variable_content(response, answer, {"test1", "test2"})
+        self.assertTrue(result.passed())
 
 if __name__ == "__main__":
     unittest.main()
-
-

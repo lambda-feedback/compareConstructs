@@ -3,8 +3,8 @@ import astor
 import numpy as np
 
 
-def check_same_content_with_different_variable(response, response_var_dict: dict, answer_var_dict: dict,
-                                               res_ast, ans_ast, check_list: set, mode=''):
+def check_same_content_with_different_variable(response_var_dict: dict, answer_var_dict: dict,
+                                               res_ast, ans_ast, check_list: set):
     """
     The method is called when students input different variable names with the same content,
     and we try to figure the similarities and replace the response to the desired (same) variable names for checklist
@@ -16,23 +16,15 @@ def check_same_content_with_different_variable(response, response_var_dict: dict
     response_diff = response_var_set - intersection
     answer_diff = answer_var_set - intersection
 
+    response = ""
+
     for answer_key in answer_diff:
         answer_val = answer_var_dict[answer_key]
 
         changed_dict = {}
 
-        if mode:
+        if answer_key in check_list:
             for response_key in response_diff:
-
-                response_val = response_var_dict[response_key]
-                if is_equal(response_val, answer_val) and answer_key != response_key:
-                    response_var_dict[answer_key] = answer_val
-                    response = replace_variable_in_code(response_key, answer_key, res_ast)
-                    changed_dict.update({response_key: answer_key})
-                    break
-        elif answer_key in check_list:
-            for response_key in response_diff:
-                changed_dict = {}
                 response_val = response_var_dict[response_key]
                 if is_equal(response_val, answer_val) and answer_key != response_key:
                     response = replace_variable_in_code(response_key, answer_key, ans_ast)

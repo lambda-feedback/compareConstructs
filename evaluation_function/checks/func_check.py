@@ -124,28 +124,32 @@ def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str)
         # Special case if the value is an array
         if response_type == list or response_type == np.ndarray:
             f = get_array_feedback(response_val, answer_val)
-            if isinstance(f, WrongValue):
-                return (
-                    CheckResult(False)
-                    .add_message(f'There is an incorrect value at index {f.error_index}: Expected {f.required_value}, got {f.actual_value}')
-                )
-            elif isinstance(f, WrongShape):
-                return (
-                    CheckResult(False)
-                    .add_message(f'Your array has the wrong shape: Expected {f.answer_shape}, got {f.response_shape}')
-                )
-            elif isinstance(f, WrongValueMultidimensional):
-                return (
-                    CheckResult(False)
-                    .add_message(f'The multi-dimensional array returned has the correct shape, but an incorrect value at {f.error_index}.\n')
-                )
-            elif isinstance(f, WrongWhole):
-                return (
-                    CheckResult(False)
-                    .add_message(f'Your array is incorrect: Expected f{answer_val}, got f{response_val}')
-                )
-            elif isinstance(f, Equal):
-                pass
+            match f:
+                case WrongValue(idx, req_val, act_val):
+                    return (
+                        CheckResult(False)
+                        .add_message(f'There is an incorrect value at index {idx}: Expected {req_val}, got {act_val}')
+                    )
+                case WrongShape(res_shape, ans_shape):
+                    return (
+                        CheckResult(False)
+                        .add_message(f'Your array has the wrong shape: Expected {ans_shape}, got {res_shape}')
+                    )
+                case WrongValueMultidimensional(idx, req_val, act_val):
+                    return (
+                        CheckResult(False)
+                        .add_message(
+                            f'The multi-dimensional array returned has the correct shape, but an incorrect value at {f.error_index}.\n'
+                            f'Expected {req_val}, got {act_val}'
+                        )
+                    )
+                case WrongWhole(_):
+                    return (
+                        CheckResult(False)
+                        .add_message(f'Your array is incorrect: Expected f{answer_val}, got f{response_val}')
+                    )
+                case Equal(_):
+                    pass
 
         elif not equals(answer_val, response_val):
             return (

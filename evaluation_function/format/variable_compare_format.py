@@ -32,11 +32,13 @@ class WrongValueMultidimensional:
     required_value: any
     actual_value: any
 
+@dataclass
 class WrongWhole:
-    pass
+    _dummy: any
 
+@dataclass
 class Equal:
-    pass
+    _dummy: any
 
 ArrayFeedback = Union[WrongShape, WrongValue, WrongValueMultidimensional, WrongWhole, Equal]
 
@@ -61,7 +63,7 @@ def get_array_feedback(response_array, answer_array) -> ArrayFeedback:
             return WrongShape(response_shape, answer_shape)
         elif len(response_shape) != 1:
             if np.allclose(response_array, answer_array):
-                return Equal()
+                return Equal(None)
             else:
                 differences = get_array_differences_multi(answer_array, response_array)
                 error_idx = differences[0]
@@ -73,10 +75,10 @@ def get_array_feedback(response_array, answer_array) -> ArrayFeedback:
         return WrongShape((len(response_array),), (len(answer_array),))
 
     if len(diffs) == 0:
-        return Equal()
+        return Equal(None)
 
     if len(answer_string) <= MAX_STRING_LEN and len(response_string) <= MAX_STRING_LEN:
-        return WrongWhole()
+        return WrongWhole(None)
 
     return WrongValue(diffs[0], answer_array[diffs[0]], response_array[diffs[0]])
 

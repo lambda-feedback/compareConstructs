@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "evaluation_function"
+version = "0.0.1"
+description = ""
+authors = ["Jieyu Zhao <jieyu.zhao22@imperial.ac.uk>", "Max Hurlow <max.hurlow22@imperial.ac.uk"]
+readme = "README.md"
+packages = [{ include = "evaluation_function" }]
+
+[tool.poetry.scripts]
+evaluation_function = "evaluation_function.main:main"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+openai = "^0.28"
+python-dotenv = "^1.0.1"
+astor = "^0.8.1"
+numpy = "^2.1"
+lf_toolkit = { git = "https://github.com/lambda-feedback/toolkit-python.git", branch = "main", extras = ["ipc"] }

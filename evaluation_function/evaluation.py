@@ -9,7 +9,6 @@ from .checks.global_variable_check import check_global_variable_content
 from .checks.general_check import check_style, validate_answer
 from .checks.structure_check import check_structure
 from .checks.func_check import check_func
-import subprocess
 
 
 class Params(TypedDict):
@@ -110,8 +109,6 @@ def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
     feedback = result[
         'Feedback'] if check_list_defined else f"{result['Feedback']}\nContact your teacher to give checklist if possible"
     return Result(is_correct=result['Bool'], feedback=markdown_format(feedback))
-
-
 
 
 def check_each_letter(response, answer):

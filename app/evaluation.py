@@ -25,10 +25,12 @@ class Result(TypedDict):
 
 
 def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
-    check_list = set(params.get('global_variable_check_list', {}))
+    check_list = params.get('global_variable_check_list', {})
     if isinstance(check_list, str):
         # check list is a set as the repeated variable name is not accepted
         check_list = {var.strip() for var in check_list.split(',') if len(var.strip()) > 0}
+    else:
+        check_list = set(check_list)
 
     check_list_defined = len(check_list) != 0
 

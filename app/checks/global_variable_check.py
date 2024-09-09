@@ -88,13 +88,11 @@ def variable_content(tree: ast.Module) -> CheckResult:
     
     context = {}
     try:
-        output = io.StringIO()
-        with contextlib.redirect_stdout(output):
-            exec(compile(tree, "<string>", "exec"), context)
+        exec(compile(tree, "<string>", "exec"), context)
     except SystemExit:
         pass
     except Exception as e:
-        return CheckResult(False).add_message(e)
+        return CheckResult(False).add_message(str(e))
 
     variable_values = {
         var: context.get(var)

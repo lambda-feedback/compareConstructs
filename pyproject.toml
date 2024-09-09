@@ -16,3 +16,11 @@ python-dotenv = "^1.0.1"
 astor = "^0.8.1"
 numpy = "^2.1"
 lf_toolkit = { git = "https://github.com/lambda-feedback/toolkit-python.git", branch = "main", extras = ["ipc"] }
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.2"
+flake8 = "^7.1.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

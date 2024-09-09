@@ -1,46 +1,37 @@
-# Base image that bundles AWS Lambda Python 3.8 image with some middleware functions
-# FROM base-eval-tmp
-FROM rabidsheep55/python-base-eval-layer
+FROM ghcr.io/lambda-feedback/evaluation-function-base/python:3.12 as builder
 
-WORKDIR /app
+RUN pip install poetry==1.8.3
 
-# Copy and install any packages/modules needed for your evaluation script.
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 \
+    POETRY_VIRTUALENVS_CREATE=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
 
+COPY pyproject.toml poetry.lock ./
 
+RUN --mount=type=cache,target=$POETRY_CACHE_DIR \
+    poetry install --without dev --no-root
 
-COPY utils/param_utils.py ./app/utils/
+FROM ghcr.io/lambda-feedback/evaluation-function-base/python:3.12
 
-COPY format/variable_compare_format.py ./app/format/
-COPY format/general_format.py ./app/format/
-COPY format/output_traceback_format.py ./app/format/
+ENV VIRTUAL_ENV=/app/.venv \
+    PATH="/app/.venv/bin:$PATH"
 
-COPY evaluation.py ./app/
-COPY evaluation_tests.py ./app/
+COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
-COPY checks/general_check.py ./app/checks/
-COPY checks/global_variable_check.py ./app/checks/
-COPY checks/local_variable_check.py ./app/checks/
-COPY checks/structure_check.py ./app/checks/
-COPY checks/same_variable_content_check.py ./app/checks/
-COPY checks/ai_prompt_check.py ./app/checks/
-COPY checks/check_result.py ./app/checks/
-COPY checks/func_check.py ./app/checks/
-COPY checks/output_check.py ./app/checks/
+# Precompile python files for faster startup
+RUN python -m compileall -q .
 
-COPY preview.py ./app/
-COPY preview_tests.py ./app/
+# Copy the evaluation function to the app directory
+COPY evaluation_function ./evaluation_function
 
+# Command to start the evaluation function with
+ENV FUNCTION_COMMAND="python"
 
+# Args to start the evaluation function with
+ENV FUNCTION_ARGS="-m,evaluation_function.main"
 
-# Copy Documentation
-COPY docs/dev.md ./app/docs/dev.md
-COPY docs/user.md ./app/docs/user.md
+# The transport to use for the RPC server
+ENV FUNCTION_RPC_TRANSPORT="ipc"
 
-# Set permissions so files and directories can be accessed on AWS
-RUN chmod 644 $(find . -type f)
-RUN chmod 755 $(find . -type d)
-
-# The entrypoint for AWS is to invoke the handler function within the app package
-CMD [ "/app/app.handler" ]
+ENV LOG_LEVEL="debug"

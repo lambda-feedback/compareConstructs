@@ -94,14 +94,14 @@ def variable_content_compare(variable_name, res_content, ans_content):
             else:
                 return ''
 
-    elif isinstance(ans_content, list) or isinstance(ans_content, np.ndarray):
+    elif isinstance(ans_content, (list, np.ndarray)):
         feedback = get_array_feedback(res_content, ans_content)
         if isinstance(feedback, WrongShape):
             return f"The shape of '{variable_name}' is: {feedback.response_shape}\nExpected: {feedback.answer_shape}"
         elif isinstance(feedback, WrongValue):
-                f"The value of '{variable_name}' at index {feedback.error_index} is: {feedback.actual_value}\nExpected: {feedback.required_value}"
+            return f"The value of '{variable_name}' at index {feedback.error_index} is: {feedback.actual_value}\nExpected: {feedback.required_value}"
         elif isinstance(feedback, WrongValueMultidimensional):
-            f"There is an incorrect value in your multidimensional array."
+            return f"There is an incorrect value in your multidimensional array."
         elif isinstance(feedback, WrongWhole):
             return general_feedback
         elif isinstance(feedback, Equal):

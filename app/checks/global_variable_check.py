@@ -110,11 +110,13 @@ def is_equal(variable_name, response_variable_content, answer_variable_content):
         return False, f"The type of '{variable_name}' is not correct. " \
                       f"Expected: {type(answer_variable_content).__name__}"
 
+    is_correct = False
     if isinstance(answer_variable_content, np.ndarray):
-        try:
-            is_correct = np.allclose(response_variable_content, answer_variable_content)
-        except Exception as e:
-            return False, f"{type(e).__name__} of '{variable_name}': {e}"
+        if np.shape(response_variable_content) == np.shape(answer_variable_content):
+            try:
+                is_correct = np.allclose(response_variable_content, answer_variable_content)
+            except Exception as e:
+                return False, f"{type(e).__name__} of '{variable_name}': {e}"
     else:
         try:
             is_correct = response_variable_content == answer_variable_content

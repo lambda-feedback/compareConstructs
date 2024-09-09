@@ -18,7 +18,7 @@ class CheckResult:
         """Add an optional message to the result.
         Normally this will be an error message in the case that success=False
         """
-        self._message = message
+        self._message = str(message)
         return self
     
     def add_payload(self, name: str, payload: any):

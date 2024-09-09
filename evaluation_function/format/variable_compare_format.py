@@ -98,16 +98,18 @@ def variable_content_compare(variable_name, res_content, ans_content):
 
     elif isinstance(ans_content, (list, np.ndarray)):
         feedback = get_array_feedback(res_content, ans_content)
-        if isinstance(feedback, WrongShape):
-            return f"The shape of '{variable_name}' is: {feedback.response_shape}\nExpected: {feedback.answer_shape}"
-        elif isinstance(feedback, WrongValue):
-            return f"The value of '{variable_name}' at index {feedback.error_index} is: {feedback.actual_value}\nExpected: {feedback.required_value}"
-        elif isinstance(feedback, WrongValueMultidimensional):
-            return f"There is an incorrect value in your multidimensional array."
-        elif isinstance(feedback, WrongWhole):
-            return general_feedback
-        elif isinstance(feedback, Equal):
-            return ""
+        match feedback:
+            case WrongShape(res_shape, ans_shape): 
+                return f"The shape of '{variable_name}' is: {res_shape}\nExpected: {ans_shape}"
+            case WrongValue(idx, req_val, act_val):
+                return f"The value of '{variable_name}' at index {idx} is: {act_val}\nExpected: {req_val}"
+            case WrongValueMultidimensional(idx, req_val, act_val):
+                return (
+                    f"The value of '{variable_name}' has the correct shape, but an incorrect value at {idx}.\n"
+                    f"Expected {req_val}, got {act_val}"
+                )
+            case WrongWhole(_): return general_feedback
+            case _: return ""
 
     else:
         return general_feedback

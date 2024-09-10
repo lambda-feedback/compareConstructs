@@ -1,3 +1,4 @@
+import ast
 import unittest
 
 try:
@@ -327,6 +328,16 @@ test2 = "He" + "llo!"
         # Should also work when invoked through evaluation_function
         result = evaluation_function(response, answer, {"global_variable_check_list": ["test1", "test2"]})
         self.assertTrue(result["is_correct"])
+
+    def test_error_message_in_variable(self):
+        from .checks.global_variable_check import variable_content
+        string_code = """
+test1 = "abcd"
+test2 = int("ab3")
+test3 = 2
+"""
+        result = variable_content(ast.parse(string_code))
+        self.assertTrue("test2" in result.message())
 
 if __name__ == "__main__":
     unittest.main()

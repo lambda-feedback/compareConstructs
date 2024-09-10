@@ -1,5 +1,6 @@
 import ast
 import builtins
+import traceback
 import types
 import numpy as np
 import io
@@ -8,6 +9,7 @@ import contextlib
 from .same_variable_content_check import check_same_content_with_different_variable
 from .check_result import CheckResult
 from ..format.variable_compare_format import variable_content_compare
+
 
 def check_global_variable_content(response_ast, answer_ast, check_list: set) -> CheckResult:
     """
@@ -19,7 +21,7 @@ def check_global_variable_content(response_ast, answer_ast, check_list: set) -> 
     # get variable contents by executing the code
     response_result = variable_content(response_ast)
     answer_result = variable_content(answer_ast)
-    
+
     if not answer_result.passed():
         return (
             CheckResult(False)
@@ -66,6 +68,17 @@ def check_global_variable_content(response_ast, answer_ast, check_list: set) -> 
     return CheckResult(True)
 
 
+def get_assigned_variable_names_with_lines(tree):
+    """Extract variable names and their line numbers from assignment targets in the AST tree."""
+    assigned_vars = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    assigned_vars[node.lineno] = target.id
+    return assigned_vars
+
+
 # Function to execute the code and check the content of variables
 def variable_content(tree: ast.Module) -> CheckResult:
     class VariableVisitor(ast.NodeVisitor):
@@ -85,20 +98,28 @@ def variable_content(tree: ast.Module) -> CheckResult:
     visitor = VariableVisitor()
     visitor.visit(tree)
     variables = visitor.variables
-    
+
     context = {}
+    assigned_vars = get_assigned_variable_names_with_lines(tree)
     try:
         exec(compile(tree, "<string>", "exec"), context)
     except SystemExit:
         pass
     except Exception as e:
-        return CheckResult(False).add_message(str(e))
+        tb = traceback.extract_tb(e.__traceback__)
+
+        # Extract the last traceback entry to get the line number
+        error_line = tb[-1].lineno
+
+        # Find the variable assigned at the error line, if any
+        error_var = assigned_vars.get(error_line, "unknown")
+        return CheckResult(False).add_message(f"The variable '{error_var}' has {type(e).__name__}: {e}")
 
     variable_values = {
         var: context.get(var)
-            for var in variables
-            if not isinstance(context.get(var), types.FunctionType)
-                and context.get(var) is not None
+        for var in variables
+        if not isinstance(context.get(var), types.FunctionType)
+           and context.get(var) is not None
     }
 
     return CheckResult(True).add_payload("values", variable_values)

@@ -1,4 +1,4 @@
-from ..format.general_format import message_format, response_format
+from ..format.general_format import response_format, message_format
 from .check_result import CheckResult
 
 import subprocess
@@ -93,7 +93,8 @@ def validate_answer(code_string: str) -> CheckResult:
                 stderr = result.stderr.decode('utf-8')
             except UnicodeDecodeError:
                 stderr = result.stderr.decode('utf-8', errors='replace')
-            return CheckResult(False).add_message(stderr)
+            return CheckResult(False).add_message(f"Please contact your teacher to give correct answer:\n"
+                                                  f"{message_format(stderr)}")
         else:
             return (
                 CheckResult(True)

@@ -68,17 +68,6 @@ def check_global_variable_content(response_ast, answer_ast, check_list: set) -> 
     return CheckResult(True)
 
 
-def get_assigned_variable_names_with_lines(tree):
-    """Extract variable names and their line numbers from assignment targets in the AST tree."""
-    assigned_vars = {}
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name):
-                    assigned_vars[node.lineno] = target.id
-    return assigned_vars
-
-
 # Function to execute the code and check the content of variables
 def variable_content(tree: ast.Module) -> CheckResult:
     class VariableVisitor(ast.NodeVisitor):
@@ -100,7 +89,6 @@ def variable_content(tree: ast.Module) -> CheckResult:
     variables = visitor.variables
 
     context = {}
-    assigned_vars = get_assigned_variable_names_with_lines(tree)
     try:
         exec(compile(tree, "<string>", "exec"), context)
     except SystemExit:
@@ -110,10 +98,7 @@ def variable_content(tree: ast.Module) -> CheckResult:
 
         # Extract the last traceback entry to get the line number
         error_line = tb[-1].lineno
-
-        # Find the variable assigned at the error line, if any
-        error_var = assigned_vars.get(error_line, "unknown")
-        return CheckResult(False).add_message(f"The variable '{error_var}' has {type(e).__name__}: {e}")
+        return CheckResult(False).add_message(f"{type(e).__name__} at line {error_line}: {e}")
 
     variable_values = {
         var: context.get(var)

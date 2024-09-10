@@ -339,7 +339,6 @@ test2 = f(2)
 test3 = 2
 """
         result = variable_content(ast.parse(string_code))
-        print(result.message())
         self.assertTrue("line 3" in result.message())
 
 if __name__ == "__main__":

@@ -4,14 +4,9 @@ import traceback
 import types
 import numpy as np
 
-try:
-    from evaluation_function.checks.same_variable_content_check import check_same_content_with_different_variable
-    from evaluation_function.checks.check_result import CheckResult
-    from evaluation_function.format.variable_compare_format import variable_content_compare
-except:
-    from .same_variable_content_check import check_same_content_with_different_variable
-    from .check_result import CheckResult
-    from ..format.variable_compare_format import variable_content_compare
+from .same_variable_content_check import check_same_content_with_different_variable
+from .check_result import CheckResult
+from ..format.variable_compare_format import variable_content_compare
 
 def check_global_variable_content(response_ast, answer_ast, check_list: set) -> CheckResult:
     """

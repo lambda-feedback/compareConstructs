@@ -6,10 +6,6 @@ import os
 from pathlib import Path
 import random
 
-# I really don't like this, but because modules may be imported both from
-# inside this module (if sandboxing is not used) and outside, we must import them
-# in both ways.
-# TODO: Is there a better way to handle this? (other moduels too)
 from .general_check import check_style, validate_answer
 from .func_check import check_func
 from .structure_check import check_structure
@@ -24,7 +20,7 @@ def run_checks(response: str, answer: str, params: dict, sandbox: bool = True) -
         # Set up the sandbox, and run this script in a new process
         # First create a new process that can then be isolated
         proc = subprocess.Popen(
-            [sys.executable, "./evaluation_function/checks/test.py"],
+            [sys.executable, "-m", "evaluation_function.checks.run_checks"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
@@ -57,9 +53,6 @@ def run_checks(response: str, answer: str, params: dict, sandbox: bool = True) -
         return run_checks_internal(response, answer, params)
 
 def restrict_process():
-    # Unshare namespaces
-    os.unshare(os.CLONE_NEWNS | os.CLONE_NEWPID | os.CLONE_NEWUTS)
-
     # Change the root directory to isolate the filesystem
     # This directory is empty, so no commands can be used by this process.
     # Might not be necessary with seccomp removing access to any file other
@@ -175,7 +168,6 @@ def check_each_letter(response, answer):
         " ", "").replace("\t", "").replace("\n", "").replace("\r", "")
 
 if __name__ == "__main__":
-    print(f"working directory: {os.getcwd()}", file=sys.stderr)
     # Isolate this process
     restrict_process()
 

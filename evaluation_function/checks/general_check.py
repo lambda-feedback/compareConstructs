@@ -1,9 +1,5 @@
-try:
-    from evaluation_function.format.general_format import response_format, message_format
-    from evaluation_function.checks.check_result import CheckResult
-except:
-    from ..format.general_format import response_format, message_format
-    from .check_result import CheckResult
+from ..format.general_format import response_format, message_format
+from .check_result import CheckResult
 
 import ast
 from contextlib import redirect_stdout

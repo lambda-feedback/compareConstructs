@@ -10,31 +10,21 @@ import random
 # inside this module (if sandboxing is not used) and outside, we must import them
 # in both ways.
 # TODO: Is there a better way to handle this? (other moduels too)
-try:
-    from evaluation_function.checks.general_check import check_style, validate_answer
-    from evaluation_function.checks.func_check import check_func
-    from evaluation_function.checks.structure_check import check_structure
-    from evaluation_function.checks.output_check import check_answer_with_output
-    from evaluation_function.checks.global_variable_check import check_global_variable_content
-    from evaluation_function.checks.check_result import CheckResult
-    from evaluation_function.format.output_traceback_format import output_diffs
-    from evaluation_function.format.general_format import markdown_format
-except:
-    from .general_check import check_style, validate_answer
-    from .func_check import check_func
-    from .structure_check import check_structure
-    from .output_check import check_answer_with_output
-    from .global_variable_check import check_global_variable_content
-    from .check_result import CheckResult
-    from ..format.output_traceback_format import output_diffs
-    from ..format.general_format import markdown_format
+from .general_check import check_style, validate_answer
+from .func_check import check_func
+from .structure_check import check_structure
+from .output_check import check_answer_with_output
+from .global_variable_check import check_global_variable_content
+from .check_result import CheckResult
+from ..format.output_traceback_format import output_diffs
+from ..format.general_format import markdown_format
 
 def run_checks(response: str, answer: str, params: dict, sandbox: bool = True) -> CheckResult:
     if sandbox:
         # Set up the sandbox, and run this script in a new process
         # First create a new process that can then be isolated
         proc = subprocess.Popen(
-            [sys.executable, "./evaluation_function/checks/run_checks.py"],
+            [sys.executable, "./evaluation_function/checks/test.py"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             stdin=subprocess.PIPE,
@@ -185,6 +175,7 @@ def check_each_letter(response, answer):
         " ", "").replace("\t", "").replace("\n", "").replace("\r", "")
 
 if __name__ == "__main__":
+    print(f"working directory: {os.getcwd()}", file=sys.stderr)
     # Isolate this process
     restrict_process()
 

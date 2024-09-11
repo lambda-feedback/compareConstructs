@@ -1,4 +1,3 @@
-import subprocess
 import numpy as np
 from contextlib import redirect_stdout
 from io import StringIO

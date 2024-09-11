@@ -6,14 +6,28 @@ import os
 from pathlib import Path
 import random
 
-from evaluation_function.checks.general_check import check_style, validate_answer
-from evaluation_function.checks.func_check import check_func
-from evaluation_function.checks.structure_check import check_structure
-from evaluation_function.checks.output_check import check_answer_with_output
-from evaluation_function.format.output_traceback_format import output_diffs
-from evaluation_function.format.general_format import markdown_format
-from evaluation_function.checks.global_variable_check import check_global_variable_content
-from evaluation_function.checks.check_result import CheckResult
+# I really don't like this, but because modules may be imported both from
+# inside this module (if sandboxing is not used) and outside, we must import them
+# in both ways.
+# TODO: Is there a better way to handle this? (other moduels too)
+try:
+    from evaluation_function.checks.general_check import check_style, validate_answer
+    from evaluation_function.checks.func_check import check_func
+    from evaluation_function.checks.structure_check import check_structure
+    from evaluation_function.checks.output_check import check_answer_with_output
+    from evaluation_function.checks.global_variable_check import check_global_variable_content
+    from evaluation_function.checks.check_result import CheckResult
+    from evaluation_function.format.output_traceback_format import output_diffs
+    from evaluation_function.format.general_format import markdown_format
+except:
+    from .general_check import check_style, validate_answer
+    from .func_check import check_func
+    from .structure_check import check_structure
+    from .output_check import check_answer_with_output
+    from .global_variable_check import check_global_variable_content
+    from .check_result import CheckResult
+    from ..format.output_traceback_format import output_diffs
+    from ..format.general_format import markdown_format
 
 def run_checks(response: str, answer: str, params: dict, sandbox: bool = True) -> CheckResult:
     if sandbox:

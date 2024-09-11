@@ -1,7 +1,7 @@
 import ast
 from ast import Module
 from enum import Enum
-from .check_result import CheckResult
+from evaluation_function.checks.check_result import CheckResult
 
 class NodeType(Enum):
     ROOT = 0

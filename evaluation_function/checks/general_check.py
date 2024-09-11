@@ -1,8 +1,9 @@
-from ..format.general_format import response_format, message_format
-from .check_result import CheckResult
+from evaluation_function.format.general_format import response_format, message_format
+from evaluation_function.checks.check_result import CheckResult
 
-import subprocess
 import ast
+from contextlib import redirect_stdout
+from io import StringIO
 
 
 def check_indents(formatted_code_lines) -> bool:
@@ -87,19 +88,15 @@ def validate_answer(code_string: str) -> CheckResult:
         return answer_ast_result
 
     try:
-        result = subprocess.run(['python', '-c', code_string], capture_output=True)
-        if result.returncode != 0:
-            try:
-                stderr = result.stderr.decode('utf-8')
-            except UnicodeDecodeError:
-                stderr = result.stderr.decode('utf-8', errors='replace')
-            return CheckResult(False).add_message(f"Please contact your teacher to give correct answer:\n"
-                                                  f"{message_format(stderr)}")
-        else:
-            return (
-                CheckResult(True)
-                .add_payload("correct_output", result.stdout.decode('utf-8').strip())
-                .combine(answer_ast_result)
-            )
+        result = StringIO()
+        with redirect_stdout(result):
+            exec(code_string, {})
+    except SystemExit:
+        pass
     except Exception as e:
-        return CheckResult(False).add_message(f"An exception occurred during answer execution: {e}")
+        return CheckResult(False).add_message("Please contact your teacher to give the correct answer")
+    return (
+        CheckResult(True)
+        .add_payload("correct_output", result.getvalue().strip())
+        .combine(answer_ast_result)
+    )

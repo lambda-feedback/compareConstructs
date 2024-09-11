@@ -10,7 +10,6 @@ from .same_variable_content_check import check_same_content_with_different_varia
 from .check_result import CheckResult
 from ..format.variable_compare_format import variable_content_compare
 
-
 def check_global_variable_content(response_ast, answer_ast, check_list: set) -> CheckResult:
     """
     Teacher should give a variable check-list for us due to the
@@ -51,8 +50,10 @@ def check_global_variable_content(response_ast, answer_ast, check_list: set) -> 
     if not check_list <= intersections:
         remaining_variables = check_list - (check_list & intersections)
         if len(remaining_variables) == 1:
+            import os
             feedback = f"The variable '{remaining_variables.pop()}' " \
-                       f"is not defined or different value respect to the answer"
+                       f"is not defined or different value respect to the answer"\
+                       f" PID = {os.getpid()}"
         else:
             feedback = f"""The variables '{"', '".join(list(remaining_variables))}' are not defined """ \
                        f"or different values respect to the answer"

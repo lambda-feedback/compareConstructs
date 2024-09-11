@@ -216,6 +216,7 @@ tests = [
 ]
 """
         result = evaluation_function(response, answer, Params(check_func="sum"))
+        print(result["feedback"])
         self.assertTrue(result['is_correct'])
 
     def test_output(self):
@@ -327,6 +328,7 @@ test2 = "He" + "llo!"
         self.assertTrue(result.passed())
         # Should also work when invoked through evaluation_function
         result = evaluation_function(response, answer, {"global_variable_check_list": ["test1", "test2"]})
+        print(result["feedback"])
         self.assertTrue(result["is_correct"])
 
     def test_error_message_in_variable(self):
@@ -340,6 +342,24 @@ test3 = 2
 """
         result = variable_content(ast.parse(string_code))
         self.assertTrue("line 3" in result.message())
+
+    def test_sandbox(self):
+        import os
+        # Only run this test if NO_SANDBOX=0
+        if int(os.environ.get("NO_SANDBOX", "0")) == 1:
+            return
+        # This test will only work on Unix
+        if os.name != "posix":
+            return
+
+        answer = "print('Hello, World')"
+        # This file shouldn't exist in the sandbox, will if running on a Linux system if it doesn't work.
+        response = """
+with open("/bin/bash", "r") as f: 
+    print("Hello, World")
+"""
+        result = evaluation_function(response, answer, {})
+        self.assertFalse(result["is_correct"])
 
 if __name__ == "__main__":
     unittest.main()

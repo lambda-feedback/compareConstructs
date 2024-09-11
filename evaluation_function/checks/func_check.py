@@ -2,8 +2,8 @@ import ast
 from inspect import signature
 import numpy as np
 
-from .check_result import CheckResult
-from ..format.variable_compare_format import get_array_feedback, WrongShape, WrongValue, WrongValueMultidimensional, WrongWhole, Equal
+from evaluation_function.checks.check_result import CheckResult
+from evaluation_function.format.variable_compare_format import get_array_feedback, WrongShape, WrongValue, WrongValueMultidimensional, WrongWhole, Equal
 
 
 def check_func(response_ast: ast.Module, answer_ast: ast.Module, func_name: str) -> CheckResult:

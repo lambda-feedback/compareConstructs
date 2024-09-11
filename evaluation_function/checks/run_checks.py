@@ -56,7 +56,10 @@ def restrict_process():
     # Change the root directory to isolate the filesystem
     # This directory is empty, so no commands can be used by this process.
     # Might not be necessary with seccomp removing access to any file other
-    # than stdout, stderr and stdin, but let's do it anyway 
+    # than stdout, stderr and stdin, but let's do it anyway
+
+    print(f"euid: {os.geteuid()}", file=sys.stderr)
+
     Path("/tmp/py_chroot").mkdir(exist_ok=True)
     os.chroot("/tmp/py_chroot")
     os.chdir("/")

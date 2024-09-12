@@ -1,17 +1,34 @@
-# Compare Construct
+# compareConstructs
 
-## Description:
-This method aims to help students check their codes. The checking methods currently include: 
-syntax, indentation, variable, structure, and method check. If students' codes could not be checked within
-the scope, the AI will be used to define the correctness of the response.
+## About
 
-## Teacher Instruction
+compareConstructs is an evaluation function for [Lambda Feedback](www.lambdafeedback.com) that
+aims to check and provide feedback on Python code. The intended use case is in teaching the
+various Mathematics and Computing modules across Imperial College, where the advanced equation entry
+features already present on the platform can be combined with code to provide a more cohesive
+experience for students.
+  
+Currently, compareConstructs focusses on the following aspects of code checking:
+- Syntax and style: 
+    - Aims to provide helpful feedback in the case of a syntax error.
+    - Checks for correct and consistent indentation style.
+- Console output:
+    - Verifies that `print`'ed values match between the response and answer.
+- Variable content:
+    - Compares the contents of specified global variables between the response and answer.
+    - Special feedback cases for NumPy arrays.
+- Functions:
+    - Functions written by students can be subjected to a battery of tests to ensure that they
+      work correctly for any input.
 
-- It is crucial to give the checklist. (currently support variables, and simple method with return statement) 
-The checklist is a table input or string input: i.e. "x,y,z" means that we need to check 'x', 'y', 'z' respect 
-to the answer
-- give the correct answer in the configuration
+If these tests are inconclusive, as an experimental feature the checking can be handled by GPT-4,
+which can provide reasonably accurate feedback.
 
+## Further Information
+
+Further documentation on the exact implementation of these features can be found in the 'docs'
+directory. Start by reading [dev.md](docs/dev.md), which contains lots of information on this
+function from a developer's perspective. 
 
 ## Code Structure:
 To better maintain the module, please see the code carefully in evaluation.py. 

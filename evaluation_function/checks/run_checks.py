@@ -132,8 +132,8 @@ def run_checks_internal(response: str, answer: str, params: dict) -> CheckResult
     # Did the answer print anything to stdout?
     # Check that first if it did
     if correct_output:
-        is_output_eval = params.get('output_eval', True)
-        is_correct, res_msg = check_answer_with_output(response, correct_output, is_output_eval)
+        is_output_inexact = params.get('output_inexact', True)
+        is_correct, res_msg = check_answer_with_output(response, correct_output, is_output_inexact)
         if not is_correct:
             error_feedback = "The output is different to given answer: \n"
 

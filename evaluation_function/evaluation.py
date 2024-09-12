@@ -10,8 +10,7 @@ class Params(TypedDict):
     global_variable_check_list: Union[str, list]
     check_names: bool
     check_func: str
-    local_variable_check_list_in_method: dict
-    output_eval: bool
+    output_inexact: bool
 
 class Result(TypedDict):
     is_correct: bool

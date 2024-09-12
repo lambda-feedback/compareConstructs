@@ -29,7 +29,7 @@ COPY evaluation_function ./evaluation_function
 ENV FUNCTION_COMMAND="python"
 
 # Args to start the evaluation function with
-ENV FUNCTION_ARGS="-m,evaluation_function.main"
+ENV FUNCTION_ARGS="-m,evaluation_function.main,--no-sandbox"
 
 # The transport to use for the RPC server
 ENV FUNCTION_RPC_TRANSPORT="ipc"

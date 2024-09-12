@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Any, TypedDict, Union
 
 from .format.general_format import ai_content_format, markdown_format
@@ -18,7 +19,7 @@ class Result(TypedDict):
 
 
 def evaluation_function(response: Any, answer: Any, params: Params) -> Result:
-    sandbox = int(os.environ.get("NO_SANDBOX", "0")) == 0
+    sandbox = not (int(os.environ.get("NO_SANDBOX", "0")) == 1 or "--no-sandbox" in sys.argv)
 
     check_result = run_checks(response, answer, dict(params), sandbox)
     if check_result.get_payload("ai", False):

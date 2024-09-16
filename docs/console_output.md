@@ -14,3 +14,28 @@ an attempt will be made to convert to a float and apply a tolerance. This avoids
 e.g. `0`, `0.0` and `0.00000005` should all be considered the same. 
 
 This function is implemented in `checks/output_check.py`.
+
+## Examples
+
+<table>
+  <tr>
+    <th>Response</th>
+    <th>Answer</th>
+    <th>Correct?</th>
+  </tr>
+  <tr>
+    <td><code>print("Hello, World")</code></td>
+    <td><code>print("Hello, World!")</code></td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td><code>print(0)</code></td>
+    <td><code>print(0.0)</code></td>
+    <td>Yes (if <code>output_inexact</code> is true)</td>
+  </tr>
+  <tr>
+    <td><pre>print(1)<br>print(2)<br>print(3)<br></pre></td>
+    <td><pre>for i in range(1, 4):<br>  print(i)</pre></td>
+    <td>Yes</td>
+  </tr>
+</table>

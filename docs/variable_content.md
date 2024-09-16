@@ -20,3 +20,27 @@ can detect this, and still return a correct result. This facility is experimenta
 that any future developers consider improving this feature, and possibly gate it behind a parameter. 
 
 This checking function is implemented in `checks/global_variable_check.py`.
+
+## Example
+
+The response in this case will be marked correct.
+
+Response:
+```python
+test1 = []
+for i in range(10)
+    test1.append(i)
+
+test2 = 10 + 32
+```
+Answer:
+```python
+test1 = [i for i in range(10)]
+test2 = 42
+```
+Params:
+```json
+{
+    "global_variables_check_list": ["test1", "test2"]
+}
+```

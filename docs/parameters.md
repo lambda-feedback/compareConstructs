@@ -4,6 +4,7 @@ Parameters are communicated from the web application to the evaluation function 
 which are passed to `evaluation_function()` as a dictionary.
 
 This dictionary has several fields:
+
 - `global_variables_check_list`: This is either a list of strings, or a comma-delimited string
   containing a list of variable names to check. If this list is present, a
   [global variable check](variable_content.md) is performed, and the given variables are compared

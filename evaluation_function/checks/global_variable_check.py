@@ -48,10 +48,8 @@ def check_global_variable_content(response_ast, answer_ast, check_list: set) -> 
     if not check_list <= intersections:
         remaining_variables = check_list - (check_list & intersections)
         if len(remaining_variables) == 1:
-            import os
             feedback = f"The variable '{remaining_variables.pop()}' " \
-                       f"is not defined or different value respect to the answer"\
-                       f" PID = {os.getpid()}"
+                       f"is not defined or different value respect to the answer"
         else:
             feedback = f"""The variables '{"', '".join(list(remaining_variables))}' are not defined """ \
                        f"or different values respect to the answer"

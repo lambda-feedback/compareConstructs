@@ -40,3 +40,10 @@ would be welcome.
   - The current [parameters](parameters.md) system doesn't provide very good control over
     exactly which checks are run, and it is unclear to users exactly what is being checked.
     This should be replaced by a more robust system.
+  - Lambda Feedback currently doesn't provide a capability for separate response areas to share
+    information. If this is ever implemented, it may be useful to allow one code area to "extend"
+    another, to reduce the amount of copying and pasting for incremental questions.
+  - Lambda Feedback doesn't allow evaluation functions to store any data between invocations.
+    If this restriction is lifted, it would be possible to provide feedback depending on the number
+    of consecutive wrong answers, for example to provide more hints the longer a student has been
+    stuck.

@@ -30,7 +30,8 @@ client.
 
 In compareConstructs, this function calls `run_checks()`, which runs the above checks sequentially.
 Exactly which checks are run depends on  the `param` given. If none of these checks are run,
-a request is made to the OpenAI API to mark the response.
+a request is made to the OpenAI API to mark the response, with all the possibility of error this
+implies.
 
 ## Future Improvements
 The scope of this project is very open ended, so there is a lot of room to add features and make

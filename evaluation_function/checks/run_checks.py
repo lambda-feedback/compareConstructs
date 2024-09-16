@@ -108,16 +108,11 @@ def run_checks_internal(response: str, answer: str, params: dict) -> CheckResult
         return general_feedback
     response_ast = general_feedback.get_payload("ast", None)
 
-    correct_feedback = random.choice(["Good Job!", "Well Done!", "Awesome"])
-
     # If a function test is desired, run tests to ensure that a particular function returns the 
     # correct values
     check_func_name = params.get('check_func', None)
     if check_func_name:
-        result = check_func(response_ast, answer_ast, check_func_name)
-        if result.passed():
-            result.add_message(correct_feedback)
-        return result
+        return check_func(response_ast, answer_ast, check_func_name)
     
     # Analyse the structure of the response, and ensure that it has the same function/class
     # heirarchy as the correct answer.
@@ -140,9 +135,9 @@ def run_checks_internal(response: str, answer: str, params: dict) -> CheckResult
             diff = output_diffs(res_msg, correct_output)
             return CheckResult(False).add_message(markdown_format(error_feedback + diff))
         else:
-            return CheckResult(True).add_message(correct_feedback)
+            return CheckResult(True)
     elif check_each_letter(response, answer):
-        return CheckResult(True).add_message(correct_feedback)
+        return CheckResult(True)
 
     # Check global variables if a check list was given
     check_list = params.get('global_variable_check_list', {})
@@ -157,7 +152,7 @@ def run_checks_internal(response: str, answer: str, params: dict) -> CheckResult
         if not check_result.passed():
             return CheckResult(False).add_message(markdown_format(check_result.message()))
         else:
-            return CheckResult(True).add_message(correct_feedback)
+            return CheckResult(True)
     
     # If none of the tests were run, return an indeterminate result and defer to AI
     return CheckResult(False).add_payload("ai", True)

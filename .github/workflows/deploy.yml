@@ -37,12 +37,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.local
-          key: poetry-0
+          key: poetry-2.4.3
 
+      # Pinned: Poetry 2.5.1 ignores platform markers in this lock-version 2.0
+      # lockfile and tries to install pywin32 on Linux.
       - name: Install and configure Poetry
         if: steps.poetry-cache.outputs.cache-hit != 'true'
         uses: snok/install-poetry@v1
         with:
+          version: 2.4.3
           virtualenvs-in-project: true
 
       - name: Load cached venv

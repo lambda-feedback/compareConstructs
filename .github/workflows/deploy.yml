@@ -95,8 +95,9 @@ jobs:
     needs: test
     with:
       template-repository-name: "lambda-feedback/evaluation-function-boilerplate-wolfram"
+      environment: "staging"
     permissions:
-      contents: read
+      contents: write
       id-token: write
       packages: write
     secrets:

@@ -58,7 +58,7 @@ def get_ast(code_string: str) -> CheckResult:
     except:
         return (
             CheckResult(False)
-            .add_message(f"Exception raised when parsing")
+            .add_message(f"Exception raised when parsing, {code_string}", {code_string: code_string})
         )
 
 
